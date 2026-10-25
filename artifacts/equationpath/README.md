@@ -52,3 +52,17 @@ Python packages are installed in the workspace-managed `.pythonlibs` environment
 - Some symbolic integrals may be unavailable or too complex to verify. Such cases return a limitation rather than a fabricated solution.
 - The plot module produces an initial-value branch numerically and may stop near denominator zeros or solver singularities. It does not extract every implicit contour branch.
 - Curve fitting is limited to the three bundled model families. Duplicate x-coordinates are rejected.
+
+## Equation Solver → Visualization / Fitting workflow
+
+After solving an equation, use **Visualize this equation** to transfer its exact M and N expressions into the existing numerical IVP visualizer. Initial conditions remain user-selectable.
+
+The solver additionally offers **Compare with observations** only for explicitly recognized, backend-verifiable equations in the three supported fitting families (with N=1):
+
+| M | N | ODE | Fit family |
+| --- | --- | --- | --- |
+| y | 1 | dy/dx = -y | decay |
+| -2*y | 1 | dy/dx = 2y | growth |
+| -2*x | 1 | dy/dx = 2x | quadratic |
+
+The transfer preserves the source equation in browser local storage, preselects the correct model family, and retains CSV upload / case selection and residual plotting. More general exact ODEs can be visualized but **cannot yet be fitted automatically**; this restriction is intentional to prevent presenting an unrelated fitted family as if it came from the entered equation. Matching is a strict whitelist of recognized expression spellings, not symbolic equivalence of arbitrary inputs.
