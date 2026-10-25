@@ -17,4 +17,10 @@ export interface ExactnessResult {
   /** @nullable */
   factor: string | null;
   explanation: string;
+  m_y_latex?: string;
+  n_x_latex?: string;
+  equation_latex?: string;
+  /** @nullable */
+  factor_latex?: string | null;
+  domain_restrictions?: string[];
 }

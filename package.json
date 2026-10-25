@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "preinstall": "node scripts/check-package-manager.cjs",
+    "build": "pnpm run typecheck && pnpm --filter @workspace/equationpath run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "dev": "pnpm --filter @workspace/equationpath run dev",
+    "preview": "pnpm --filter @workspace/equationpath run serve",
+    "test": "pnpm --filter @workspace/equationpath run test",
+    "test:e2e": "pnpm --filter @workspace/equationpath run test:e2e"
   },
   "private": true,
   "dependencies": {
@@ -15,5 +19,6 @@
   "devDependencies": {
     "prettier": "^3.9.10",
     "typescript": "~5.9.3"
-  }
+  },
+  "packageManager": "pnpm@11.25.0"
 }

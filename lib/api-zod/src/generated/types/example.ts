@@ -5,6 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ExactnessResult } from './exactnessResult';
+import type { SolutionResult } from './solutionResult';
 
 export interface Example {
   id: string;
@@ -14,4 +16,7 @@ export interface Example {
   kind: string;
   expected_solution: string;
   description: string;
+  analysis?: ExactnessResult;
+  solution?: SolutionResult;
+  equation_latex?: string;
 }

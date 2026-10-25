@@ -18,4 +18,10 @@ export interface SolutionResult {
   verification: SolutionResultVerification;
   domain_restrictions: string[];
   warnings: string[];
+  potential_latex?: string;
+  solution_latex?: string;
+  equation_latex?: string;
+  classification?: string;
+  steps_latex?: string[];
+  step_descriptions?: string[];
 }

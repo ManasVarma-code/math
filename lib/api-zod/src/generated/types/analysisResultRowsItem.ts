@@ -6,4 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type AnalysisResultRowsItem = { [key: string]: unknown };
+export type AnalysisResultRowsItem = {
+  x_value: number;
+  observed_y: number;
+  /** @nullable */
+  predicted_y: number | null;
+  /** @nullable */
+  residual: number | null;
+  /** @nullable */
+  squared_residual: number | null;
+  /** @nullable */
+  theoretical_y: number | null;
+};

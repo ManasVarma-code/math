@@ -33,6 +33,12 @@ export interface ExactnessResult {
   /** @nullable */
   factor: string | null;
   explanation: string;
+  m_y_latex?: string;
+  n_x_latex?: string;
+  equation_latex?: string;
+  /** @nullable */
+  factor_latex?: string | null;
+  domain_restrictions?: string[];
 }
 
 export type SolutionResultVerification = { [key: string]: unknown };
@@ -48,6 +54,12 @@ export interface SolutionResult {
   verification: SolutionResultVerification;
   domain_restrictions: string[];
   warnings: string[];
+  potential_latex?: string;
+  solution_latex?: string;
+  equation_latex?: string;
+  classification?: string;
+  steps_latex?: string[];
+  step_descriptions?: string[];
 }
 
 export interface PlotInput {
@@ -79,6 +91,8 @@ export interface PlotResult {
   y0: number;
   warnings: string[];
   method: string;
+  field_x?: (number | null)[];
+  field_y?: (number | null)[];
 }
 
 export interface Observation {
@@ -97,14 +111,39 @@ export const AnalyzeDatasetInputModel = {
 
 export interface AnalyzeDatasetInput {
   model: AnalyzeDatasetInputModel;
-  /** @minItems 2 */
+  /**
+     * @minItems 2
+     * @maxItems 2000
+     */
   observations: Observation[];
   fit_parameter?: boolean;
+  /** @nullable */
+  known_parameter?: number | null;
 }
 
-export type AnalysisResultRowsItem = { [key: string]: unknown };
+export type AnalysisResultRowsItem = {
+  x_value: number;
+  observed_y: number;
+  /** @nullable */
+  predicted_y: number | null;
+  /** @nullable */
+  residual: number | null;
+  /** @nullable */
+  squared_residual: number | null;
+  /** @nullable */
+  theoretical_y: number | null;
+};
 
-export type AnalysisResultMetrics = {[key: string]: number | null};
+export type AnalysisResultMetrics = {
+  /** @nullable */
+  mse: number | null;
+  /** @nullable */
+  rmse: number | null;
+  /** @nullable */
+  mae: number | null;
+  /** @nullable */
+  r_squared: number | null;
+};
 
 export interface AnalysisResult {
   model: string;
@@ -125,6 +164,9 @@ export interface Example {
   kind: string;
   expected_solution: string;
   description: string;
+  analysis?: ExactnessResult;
+  solution?: SolutionResult;
+  equation_latex?: string;
 }
 
 export type ExamplesResponseDatasetsItem = { [key: string]: unknown };
@@ -136,5 +178,63 @@ export interface ExamplesResponse {
 
 export interface ErrorResponse {
   error: string;
+}
+
+export interface NumericalFitInput {
+  /**
+     * @minLength 1
+     * @maxLength 400
+     */
+  m: string;
+  /**
+     * @minLength 1
+     * @maxLength 400
+     */
+  n: string;
+  /**
+     * @minItems 3
+     * @maxItems 200
+     */
+  observations: Observation[];
+  x0?: number;
+  initial_guess?: number;
+  lower_bound?: number;
+  upper_bound?: number;
+}
+
+export interface ContourInput {
+  /**
+     * @minLength 1
+     * @maxLength 400
+     */
+  m: string;
+  /**
+     * @minLength 1
+     * @maxLength 400
+     */
+  n: string;
+  x0: number;
+  y0: number;
+  x_min?: number;
+  x_max?: number;
+  y_min?: number;
+  y_max?: number;
+  /**
+     * @minimum 30
+     * @maximum 140
+     */
+  resolution?: number;
+}
+
+export interface ContourResult {
+  x: number[];
+  y: number[];
+  z: ((number | null)[])[];
+  level: number;
+  field_x: (number | null)[];
+  field_y: (number | null)[];
+  potential_latex: string;
+  domain_restrictions: string[];
+  warnings: string[];
 }
 

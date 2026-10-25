@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-sympy
-numpy
-scipy
-pandas
+fastapi==0.162.0
+uvicorn==0.54.0
+sympy==1.14.0
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.1.0

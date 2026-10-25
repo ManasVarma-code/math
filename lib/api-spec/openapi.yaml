@@ -1,143 +1,198 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
 servers:
-  - url: /api
-    description: Base API path
+- url: /api
+  description: Base API path
 tags:
-  - name: health
-    description: Health operations
-  - name: equations
-    description: Symbolic differential-equation operations
-  - name: data
-    description: Dataset analysis operations
-  - name: examples
-    description: Verified worked examples
+- name: health
+  description: Health operations
+- name: equations
+  description: Symbolic differential-equation operations
+- name: data
+  description: Dataset analysis operations
+- name: examples
+  description: Verified worked examples
 paths:
   /healthz:
     get:
       operationId: healthCheck
-      tags: [health]
+      tags:
+      - health
       summary: Health check
       description: Returns server health status
       responses:
-        "200":
+        '200':
           description: Healthy
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: '#/components/schemas/HealthStatus'
   /equations/check:
     post:
       operationId: checkEquation
-      tags: [equations]
+      tags:
+      - equations
       summary: Check exactness and supported integrating factors
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EquationInput"
+              $ref: '#/components/schemas/EquationInput'
       responses:
-        "200":
+        '200':
           description: Exactness analysis
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ExactnessResult"
-        "400":
+                $ref: '#/components/schemas/ExactnessResult'
+        '400':
           description: Invalid equation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /equations/solve:
     post:
       operationId: solveEquation
-      tags: [equations]
+      tags:
+      - equations
       summary: Solve an exact equation or apply a supported integrating factor
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EquationInput"
+              $ref: '#/components/schemas/EquationInput'
       responses:
-        "200":
+        '200':
           description: Structured solution and verification
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SolutionResult"
-        "400":
+                $ref: '#/components/schemas/SolutionResult'
+        '400':
           description: Invalid equation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /equations/plot:
     post:
       operationId: plotEquation
-      tags: [equations]
+      tags:
+      - equations
       summary: Generate numerically integrated solution curves
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PlotInput"
+              $ref: '#/components/schemas/PlotInput'
       responses:
-        "200":
+        '200':
           description: Plot-ready curve data
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlotResult"
-        "400":
+                $ref: '#/components/schemas/PlotResult'
+        '400':
           description: Invalid or singular equation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /data/analyze:
     post:
       operationId: analyzeDataset
-      tags: [data]
+      tags:
+      - data
       summary: Compare observations with an ODE solution family and fit its constant
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AnalyzeDatasetInput"
+              $ref: '#/components/schemas/AnalyzeDatasetInput'
       responses:
-        "200":
+        '200':
           description: Predictions, residuals, fit parameters, and metrics
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AnalysisResult"
-        "400":
+                $ref: '#/components/schemas/AnalysisResult'
+        '400':
           description: Invalid observations or unsupported model
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /examples:
     get:
       operationId: getExamples
-      tags: [examples]
+      tags:
+      - examples
       summary: List verified built-in equations and sample datasets
       responses:
-        "200":
+        '200':
           description: Examples and dataset metadata
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ExamplesResponse"
+                $ref: '#/components/schemas/ExamplesResponse'
+  /data/fit-ode:
+    post:
+      operationId: fitOdeDataset
+      tags:
+      - data
+      summary: fitOdeDataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NumericalFitInput'
+      responses:
+        '200':
+          description: Computed result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '422':
+          description: Invalid domain, failed integration or unsupported computation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /equations/contour:
+    post:
+      operationId: contourEquation
+      tags:
+      - equations
+      summary: contourEquation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContourInput'
+      responses:
+        '200':
+          description: Computed result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContourResult'
+        '422':
+          description: Invalid domain, failed integration or unsupported computation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     HealthStatus:
@@ -146,134 +201,464 @@ components:
         status:
           type: string
       required:
-        - status
+      - status
     EquationInput:
+      type: object
+      properties:
+        m: &id001
+          type: string
+          minLength: 1
+          maxLength: 400
+        n: &id002
+          type: string
+          minLength: 1
+          maxLength: 400
+      required:
+      - m
+      - n
+    ExactnessResult:
       type: object
       properties:
         m:
           type: string
-          minLength: 1
-          maxLength: 400
         n:
           type: string
-          minLength: 1
-          maxLength: 400
-      required: [m, n]
-    ExactnessResult:
-      type: object
-      properties:
-        m: { type: string }
-        n: { type: string }
-        m_y: { type: string }
-        n_x: { type: string }
-        difference: { type: string }
-        is_exact: { type: boolean }
-        method: { type: string }
-        factor: { type: ["string", "null"] }
-        explanation: { type: string }
-      required: [m, n, m_y, n_x, difference, is_exact, method, factor, explanation]
+        m_y:
+          type: string
+        n_x:
+          type: string
+        difference:
+          type: string
+        is_exact:
+          type: boolean
+        method:
+          type: string
+        factor:
+          type:
+          - string
+          - 'null'
+        explanation:
+          type: string
+        m_y_latex:
+          type: string
+        n_x_latex:
+          type: string
+        equation_latex:
+          type: string
+        factor_latex:
+          type:
+          - string
+          - 'null'
+        domain_restrictions:
+          type: array
+          items:
+            type: string
+      required:
+      - m
+      - n
+      - m_y
+      - n_x
+      - difference
+      - is_exact
+      - method
+      - factor
+      - explanation
     SolutionResult:
       type: object
       properties:
-        status: { type: string }
-        method: { type: string }
-        potential: { type: ["string", "null"] }
-        implicit_solution: { type: ["string", "null"] }
+        status:
+          type: string
+        method:
+          type: string
+        potential:
+          type:
+          - string
+          - 'null'
+        implicit_solution:
+          type:
+          - string
+          - 'null'
         steps:
           type: array
-          items: { type: string }
+          items:
+            type: string
         verification:
           type: object
           additionalProperties: true
         domain_restrictions:
           type: array
-          items: { type: string }
+          items:
+            type: string
         warnings:
           type: array
-          items: { type: string }
-      required: [status, method, potential, implicit_solution, steps, verification, domain_restrictions, warnings]
+          items:
+            type: string
+        potential_latex:
+          type: string
+        solution_latex:
+          type: string
+        equation_latex:
+          type: string
+        classification:
+          type: string
+        steps_latex:
+          type: array
+          items:
+            type: string
+        step_descriptions:
+          type: array
+          items:
+            type: string
+      required:
+      - status
+      - method
+      - potential
+      - implicit_solution
+      - steps
+      - verification
+      - domain_restrictions
+      - warnings
     PlotInput:
       type: object
       properties:
-        m: { type: string, minLength: 1, maxLength: 400 }
-        n: { type: string, minLength: 1, maxLength: 400 }
-        x0: { type: number }
-        y0: { type: number }
-        x_min: { type: number, default: -5 }
-        x_max: { type: number, default: 5 }
-        points: { type: integer, minimum: 40, maximum: 600, default: 240 }
-      required: [m, n, x0, y0]
+        m: &id003
+          type: string
+          minLength: 1
+          maxLength: 400
+        n: &id004
+          type: string
+          minLength: 1
+          maxLength: 400
+        x0: &id005
+          type: number
+        y0: &id006
+          type: number
+        x_min: &id007
+          type: number
+          default: -5
+        x_max: &id008
+          type: number
+          default: 5
+        points:
+          type: integer
+          minimum: 40
+          maximum: 600
+          default: 240
+      required:
+      - m
+      - n
+      - x0
+      - y0
     PlotResult:
       type: object
       properties:
-        x: { type: array, items: { type: number } }
-        y: { type: array, items: { type: ["number", "null"] } }
-        x0: { type: number }
-        y0: { type: number }
+        x:
+          type: array
+          items:
+            type: number
+        y:
+          type: array
+          items:
+            type:
+            - number
+            - 'null'
+        x0:
+          type: number
+        y0:
+          type: number
         warnings:
           type: array
-          items: { type: string }
-        method: { type: string }
-      required: [x, y, x0, y0, warnings, method]
+          items:
+            type: string
+        method:
+          type: string
+        field_x:
+          type: array
+          items:
+            type:
+            - number
+            - 'null'
+        field_y:
+          type: array
+          items:
+            type:
+            - number
+            - 'null'
+      required:
+      - x
+      - y
+      - x0
+      - y0
+      - warnings
+      - method
     Observation:
       type: object
       properties:
-        x_value: { type: number }
-        observed_y: { type: number }
-      required: [x_value, observed_y]
+        x_value:
+          type: number
+        observed_y:
+          type: number
+      required:
+      - x_value
+      - observed_y
     AnalyzeDatasetInput:
       type: object
       properties:
-        model: { type: string, enum: [decay, growth, quadratic] }
+        model:
+          type: string
+          enum:
+          - decay
+          - growth
+          - quadratic
         observations:
           type: array
           minItems: 2
-          items: { $ref: "#/components/schemas/Observation" }
-        fit_parameter: { type: boolean, default: true }
-        known_parameter: { type: ["number", "null"] }
-      required: [model, observations]
+          items:
+            $ref: '#/components/schemas/Observation'
+          maxItems: 2000
+        fit_parameter:
+          type: boolean
+          default: true
+        known_parameter:
+          type:
+          - number
+          - 'null'
+      required:
+      - model
+      - observations
     AnalysisResult:
       type: object
       properties:
-        model: { type: string }
-        parameter_name: { type: ["string", "null"] }
-        parameter_value: { type: ["number", "null"] }
+        model:
+          type: string
+        parameter_name:
+          type:
+          - string
+          - 'null'
+        parameter_value:
+          type:
+          - number
+          - 'null'
         rows:
           type: array
           items:
             type: object
-            additionalProperties: true
+            properties:
+              x_value:
+                type: number
+              observed_y:
+                type: number
+              predicted_y:
+                type:
+                - number
+                - 'null'
+              residual:
+                type:
+                - number
+                - 'null'
+              squared_residual:
+                type:
+                - number
+                - 'null'
+              theoretical_y:
+                type:
+                - number
+                - 'null'
+            required:
+            - x_value
+            - observed_y
+            - predicted_y
+            - residual
+            - squared_residual
+            - theoretical_y
         metrics:
           type: object
-          additionalProperties: { type: ["number", "null"] }
-        note: { type: string }
-      required: [model, parameter_name, parameter_value, rows, metrics, note]
+          properties:
+            mse:
+              type:
+              - number
+              - 'null'
+            rmse:
+              type:
+              - number
+              - 'null'
+            mae:
+              type:
+              - number
+              - 'null'
+            r_squared:
+              type:
+              - number
+              - 'null'
+          required:
+          - mse
+          - rmse
+          - mae
+          - r_squared
+        note:
+          type: string
+      required:
+      - model
+      - parameter_name
+      - parameter_value
+      - rows
+      - metrics
+      - note
     Example:
       type: object
       properties:
-        id: { type: string }
-        title: { type: string }
-        m: { type: string }
-        n: { type: string }
-        kind: { type: string }
-        expected_solution: { type: string }
-        description: { type: string }
-      required: [id, title, m, n, kind, expected_solution, description]
+        id:
+          type: string
+        title:
+          type: string
+        m:
+          type: string
+        n:
+          type: string
+        kind:
+          type: string
+        expected_solution:
+          type: string
+        description:
+          type: string
+        analysis:
+          $ref: '#/components/schemas/ExactnessResult'
+        solution:
+          $ref: '#/components/schemas/SolutionResult'
+        equation_latex:
+          type: string
+      required:
+      - id
+      - title
+      - m
+      - n
+      - kind
+      - expected_solution
+      - description
     ExamplesResponse:
       type: object
       properties:
         examples:
           type: array
-          items: { $ref: "#/components/schemas/Example" }
+          items:
+            $ref: '#/components/schemas/Example'
         datasets:
           type: array
           items:
             type: object
             additionalProperties: true
-      required: [examples, datasets]
+      required:
+      - examples
+      - datasets
     ErrorResponse:
       type: object
       properties:
-        error: { type: string }
-      required: [error]
-
+        error:
+          type: string
+      required:
+      - error
+    NumericalFitInput:
+      type: object
+      properties:
+        m: *id001
+        n: *id002
+        observations:
+          type: array
+          minItems: 3
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/Observation'
+        x0:
+          type: number
+          default: 0
+        initial_guess:
+          type: number
+          default: 1
+        lower_bound:
+          type: number
+          default: -100000
+        upper_bound:
+          type: number
+          default: 100000
+      required:
+      - m
+      - n
+      - observations
+    ContourInput:
+      type: object
+      properties:
+        m: *id003
+        n: *id004
+        x0: *id005
+        y0: *id006
+        x_min: *id007
+        x_max: *id008
+        y_min:
+          type: number
+          default: -5
+        y_max:
+          type: number
+          default: 5
+        resolution:
+          type: integer
+          minimum: 30
+          maximum: 140
+          default: 90
+      required:
+      - m
+      - n
+      - x0
+      - y0
+    ContourResult:
+      type: object
+      properties:
+        x:
+          type: array
+          items:
+            type: number
+        y:
+          type: array
+          items:
+            type: number
+        z:
+          type: array
+          items:
+            type: array
+            items:
+              type:
+              - number
+              - 'null'
+        level:
+          type: number
+        field_x:
+          type: array
+          items:
+            type:
+            - number
+            - 'null'
+        field_y:
+          type: array
+          items:
+            type:
+            - number
+            - 'null'
+        potential_latex:
+          type: string
+        domain_restrictions:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+      required:
+      - x
+      - y
+      - z
+      - level
+      - field_x
+      - field_y
+      - potential_latex
+      - domain_restrictions
+      - warnings

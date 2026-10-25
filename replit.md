@@ -1,45 +1,32 @@
-# [Project name]
+# EquationPath
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+EquationPath checks and solves supported first-order differential equations, visualizes solution curves and fits observations. All mathematical computation runs inside the browser.
 
-## Run & Operate
+## Run and operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm install` — install workspace dependencies.
+- `pnpm dev` — prepare bundled math assets and start the frontend on port 5173.
+- `pnpm build` — typecheck and build the static app into `artifacts/equationpath/dist/public`.
+- `pnpm preview` — preview the static production app.
+- `pnpm test` — CSV and notation regression tests.
+- `pnpm test:e2e` — real browser computations, workflows and responsive checks.
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate contracts after schema changes.
 
-## Stack
+No backend process, Python installation, DATABASE_URL, external API or account is required to use the application.
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+## Architecture
 
-## Where things live
+- React, Vite, TypeScript and Tailwind retain the original EquationPath interface.
+- A WebAssembly worker runs repository-owned SymPy, NumPy and SciPy algorithms.
+- Math runtime assets are bundled locally and SHA-256 verified during preparation. No CDN or external API is contacted during calculations.
+- Generated client hooks dispatch to the local worker with generated Zod request validation.
+- CSV data and calculation history are stored in the browser.
+- Original Express/FastAPI adapters remain optional development tools. The frontend does not call them.
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+## Project map and scope
 
-## Architecture decisions
+See README.md for source paths, exact startup commands, mathematical assumptions, data limits and optional native regression testing. See DEVELOPMENT_SUMMARY.md for implementation and validation details.
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+## User preference
 
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+The application must run entirely in the browser, without a separate backend or Python installation.

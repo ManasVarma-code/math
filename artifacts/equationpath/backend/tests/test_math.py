@@ -91,7 +91,7 @@ class EquationPathMathTests(unittest.TestCase):
         self.assertIsNone(result["metrics"]["r_squared"])
 
     def test_duplicate_observations_are_rejected(self) -> None:
-        from fastapi import HTTPException
+        from app.errors import CalculationError as HTTPException
         with self.assertRaises(HTTPException):
             analyze_dataset(AnalyzeInput(
                 model="decay",
@@ -113,7 +113,7 @@ class EquationPathMathTests(unittest.TestCase):
         self.assertLess(result["metrics"]["rmse"], 1e-4)
 
     def test_numerical_fit_rejects_duplicate_x_coordinates(self) -> None:
-        from fastapi import HTTPException
+        from app.errors import CalculationError as HTTPException
         with self.assertRaises(HTTPException):
             fit_ode_dataset(NumericalFitInput(
                 m="y", n="1",
