@@ -204,7 +204,7 @@ function Overview() {
 function Solver() {
   const query = new URLSearchParams(window.location.search);
   const [m, setM] = useState('2*x*y + 3');
-  const [n, setN] = useState('x^2 + 4*y');
+  const [n, setN] = useState('x**2 + 4*y');
   const [exact, setExact] = useState<any>(null);
   const [solution, setSolution] = useState<any>(null);
   const check = useCheckEquation();
@@ -220,7 +220,7 @@ function Solver() {
     <div className="solver-layout">
       <div className="solver-main">
         <Card className="equation-card"><div className="card-head"><div><div className="eyebrow">DEFINE YOUR EQUATION</div><h3>Enter M and N</h3></div><span className="step-badge">01</span></div>
-          <div className="equation-entry"><div className="equation-symbol">M</div><div className="equation-input-wrap"><Label>M(x, y)</Label><input value={m} onChange={(e) => setM(e.target.value)} placeholder="e.g. 2*x*y + 3*x^2" data-testid="input-equation-m" /><small>coefficient of dx</small></div><span className="equation-operator">dx +</span><div className="equation-symbol violet">N</div><div className="equation-input-wrap"><Label>N(x, y)</Label><input value={n} onChange={(e) => setN(e.target.value)} placeholder="e.g. x^2 + 4*y" data-testid="input-equation-n" /><small>coefficient of dy</small></div><span className="equation-operator">dy = 0</span></div>
+          <div className="equation-entry"><div className="equation-symbol">M</div><div className="equation-input-wrap"><Label>M(x, y)</Label><input value={m} onChange={(e) => setM(e.target.value)} placeholder="e.g. 2*x*y + 3" data-testid="input-equation-m" /><small>coefficient of dx</small></div><span className="equation-operator">dx +</span><div className="equation-symbol violet">N</div><div className="equation-input-wrap"><Label>N(x, y)</Label><input value={n} onChange={(e) => setN(e.target.value)} placeholder="e.g. x**2 + 4*y" data-testid="input-equation-n" /><small>coefficient of dy</small></div><span className="equation-operator">dy = 0</span></div>
           <div className="equation-actions"><span className="helper-note"><Info size={14} /> Use <code>x</code>, <code>y</code>, powers, and standard functions.</span><div><Button variant="secondary" disabled={!m.trim() || !n.trim() || check.isPending} onClick={runCheck}>{check.isPending ? 'Checking…' : 'Check exactness'}</Button><Button disabled={!m.trim() || !n.trim() || solve.isPending} onClick={runSolve}>{solve.isPending ? 'Solving…' : <>Solve equation <ArrowRight size={15} /></>}</Button></div></div>
           {check.isError && <ErrorBlock error={check.error} retry={runCheck} />}{solve.isError && <ErrorBlock error={solve.error} retry={runSolve} />}
         </Card>
