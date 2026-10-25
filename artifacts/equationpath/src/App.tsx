@@ -31,6 +31,31 @@ type SavedDataset = {
 };
 const HISTORY_KEY = 'equationpath-history-v1';
 const DATASET_KEY = 'equationpath-dataset-v1';
+const EQUATION_TRANSFER_KEY = 'equationpath-equation-transfer-v1';
+type SupportedFitModel = 'decay' | 'growth' | 'quadratic';
+type TransferredEquation = { m: string; n: string; model: SupportedFitModel | null };
+// The parameter fitter supports exactly three ODE families. Only recognize these
+// explicit, mathematically equivalent input spellings; never silently guess.
+function fitFamily(m: string, n: string): SupportedFitModel | null {
+  const tidy = (v: string) => v.replace(/\s+/g, '').replace(/\^/g, '**');
+  const a = tidy(m), b = tidy(n);
+  if (b !== '1' && b !== '+1') return null;
+  if (a === 'y' || a === '+y') return 'decay';           // y' = -y
+  if (a === '-2*y' || a === '-2y') return 'growth';      // y' = 2y
+  if (a === '-2*x' || a === '-2x') return 'quadratic';   // y' = 2x
+  return null;
+}
+function saveTransferredEquation(m: string, n: string): void {
+  localStorage.setItem(EQUATION_TRANSFER_KEY, JSON.stringify({ m, n, model: fitFamily(m, n) } satisfies TransferredEquation));
+}
+function getTransferredEquation(): TransferredEquation | null {
+  try {
+    const value = JSON.parse(localStorage.getItem(EQUATION_TRANSFER_KEY) || 'null');
+    if (typeof value?.m === 'string' && typeof value?.n === 'string')
+      return {m: value.m, n: value.n, model: fitFamily(value.m, value.n)};
+  } catch { /* stale browser storage */ }
+  return null;
+}
 const readHistory = (): HistoryItem[] => {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') as HistoryItem[]; } catch { return []; }
 };
@@ -212,8 +237,9 @@ function Solver() {
   const { data: examples } = useGetExamples({ query: { queryKey: getGetExamplesQueryKey() } });
   useEffect(() => { const ex = examples?.examples?.find((item) => item.id === query.get('example')); if (ex) { setM(ex.m); setN(ex.n); } }, [examples, query.get('example')]);
   const payload = { m: m.trim(), n: n.trim() };
+  const supportedFitModel = fitFamily(m, n);
   const runCheck = () => check.mutate({ data: payload }, { onSuccess: (res) => { setExact(res); setSolution(null); addHistory({ module: 'Exactness solver', title: 'Exactness check', detail: `${payload.m} dx + ${payload.n} dy`, href: '/solver' }); } });
-  const runSolve = () => solve.mutate({ data: payload }, { onSuccess: (res) => { setSolution(res); addHistory({ module: 'Exactness solver', title: 'Equation solved', detail: `${payload.m} dx + ${payload.n} dy`, href: '/solver' }); } });
+  const runSolve = () => solve.mutate({ data: payload }, { onSuccess: (res) => { setSolution(res); if (res.status === 'solved') saveTransferredEquation(payload.m, payload.n); addHistory({ module: 'Exactness solver', title: 'Equation solved', detail: `${payload.m} dx + ${payload.n} dy`, href: '/solver' }); } });
   const fillExample = (ex: Example) => { setM(ex.m); setN(ex.n); setExact(null); setSolution(null); };
   return <div className="page-content">
     <PageHeading eyebrow="01 / Analyze" title="Exactness solver" description="Compare the cross-partials first. Then follow the method the equation supports." action={<span className="mode-chip"><span className="status-pip" /> SYMBOLIC ENGINE</span>} />
@@ -230,6 +256,7 @@ function Solver() {
           <div className="explanation"><span className="explanation-mark"><Info size={16} /></span><div><b>{exact.method}</b><p>{exact.explanation}</p>{exact.factor && <p className="factor-line">Supported integrating factor <code>μ = {exact.factor}</code></p>}</div></div>
         </Card>}
         {solution && <Card className="solution-card"><div className="card-head"><div><div className="eyebrow">SOLUTION · {solution.method}</div><h3>Follow the derivation</h3></div><ResultPill good={solution.status === 'success' || solution.status === 'solved'}>{solution.status}</ResultPill></div>
+          {solution.status === 'solved' && <div className="equation-actions"><Link href="/visualizer?from=solver" onClick={() => saveTransferredEquation(payload.m, payload.n)} className="btn btn-secondary">Visualize this equation <ArrowRight size={15} /></Link>{supportedFitModel ? <Link href="/fitting?from=solver" onClick={() => saveTransferredEquation(payload.m, payload.n)} className="btn btn-primary">Compare with observations <ArrowRight size={15} /></Link> : <span className="helper-note">Direct parameter fitting is currently supported only for y' = -y, y' = 2y and y' = 2x.</span>}</div>}
           {solution.implicit_solution && <div className="potential-result"><small>IMPLICIT SOLUTION</small><strong>{solution.implicit_solution}</strong></div>}
           {solution.potential && <div className="potential-result secondary-result"><small>POTENTIAL FUNCTION</small><strong>{solution.potential}</strong></div>}
           {solution.steps?.length ? <ol className="steps-list">{solution.steps.map((step: string, i: number) => <li key={`${i}-${step}`}><span>{String(i + 1).padStart(2, '0')}</span><p>{step}</p></li>)}</ol> : <div className="empty-inline">The solver did not return derivation steps for this input.</div>}
@@ -247,8 +274,9 @@ function Solver() {
 }
 
 function Visualizer() {
-  const [m, setM] = useState('y');
-  const [n, setN] = useState('1');
+  const transferred = new URLSearchParams(window.location.search).get('from') === 'solver' ? getTransferredEquation() : null;
+  const [m, setM] = useState(transferred?.m || 'y');
+  const [n, setN] = useState(transferred?.n || '1');
   const [x0, setX0] = useState('0');
   const [y0, setY0] = useState('1');
   const [xmin, setXmin] = useState('-2');
@@ -313,7 +341,8 @@ function extractObservations(dataset: Record<string, any>): { x_value: number; o
   }).filter((r: any) => Number.isFinite(r.x_value) && Number.isFinite(r.observed_y));
 }
 function Fitting() {
-  const [model, setModel] = useState<'decay' | 'growth' | 'quadratic'>('decay');
+  const transferred = new URLSearchParams(window.location.search).get('from') === 'solver' ? getTransferredEquation() : null;
+  const [model, setModel] = useState<'decay' | 'growth' | 'quadratic'>(transferred?.model || 'decay');
   const [fitParameter, setFitParameter] = useState(true);
   const [observations, setObservations] = useState<{ x_value: number; observed_y: number }[]>([]);
   const [result, setResult] = useState<any>(null);
@@ -351,6 +380,7 @@ function Fitting() {
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'equationpath-fit-results.csv'; anchor.click(); URL.revokeObjectURL(url);
   };
   return <div className="page-content"><PageHeading eyebrow="03 / Compare" title="Data fitting" description="Compare observations with a supported solution family. Inspect the fitted parameter and residuals row by row." action={<span className="mode-chip"><Database size={14} /> MODEL COMPARISON</span>} />
+    {transferred && <div className="notice-line"><Info size={15} />From solver: {transferred.m} dx + {transferred.n} dy = 0. {transferred.model ? `Matched supported solution family: ${transferred.model}. Upload or select observations to compare.` : 'This ODE is not one of the three supported fitted families; select a sample family manually (it will not represent your entered ODE).'}</div>}
     <div className="fitting-layout"><div className="fit-input-column"><Card><div className="card-head"><div><div className="eyebrow">1 — CHOOSE A MODEL</div><h3>Model family</h3></div><span className="step-badge">A</span></div><div className="model-options">{(['decay', 'growth', 'quadratic'] as const).map((val) => <button className={`model-option ${model === val ? 'selected' : ''}`} key={val} onClick={() => { setModel(val); setResult(null); }}><span className="radio-mark">{model === val && <i />}</span><span><b>{val.charAt(0).toUpperCase() + val.slice(1)}</b><small>{val === 'decay' ? 'Exponential decrease' : val === 'growth' ? 'Exponential increase' : 'Second-degree polynomial'}</small></span><span className="model-formula">{val === 'quadratic' ? 'ax² + bx + c' : 'aeᵏˣ'}</span></button>)}</div><label className="check-setting"><input type="checkbox" checked={fitParameter} onChange={(e) => setFitParameter(e.target.checked)} /><span><b>Fit model parameter</b><small>Estimate the model constant from the observations</small></span></label></Card>
       <Card><div className="card-head"><div><div className="eyebrow">2 — LOAD OBSERVATIONS</div><h3>Your data</h3></div><span className="step-badge">B</span></div>
         <label className="upload-zone" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) parseCsv(file); }}><input type="file" accept=".csv,text/csv,.tsv,text/tab-separated-values" onChange={(e) => { const file = e.target.files?.[0]; if (file) parseCsv(file); e.currentTarget.value = ''; }} data-testid="input-csv-upload" /><span className="upload-icon"><ArrowDownToLine size={18} /></span><span><b>Drop a CSV here or browse files</b><small>Required columns: case_id, x_value, observed_y</small></span></label>
