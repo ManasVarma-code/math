@@ -66,7 +66,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EquationInput'
+              $ref: '#/components/schemas/SolveInput'
       responses:
         '200':
           description: Structured solution and verification
@@ -253,6 +253,22 @@ components:
           type: array
           items:
             type: string
+        ratio_x:
+          type:
+          - string
+          - 'null'
+        ratio_y:
+          type:
+          - string
+          - 'null'
+        ratio_x_latex:
+          type:
+          - string
+          - 'null'
+        ratio_y_latex:
+          type:
+          - string
+          - 'null'
       required:
       - m
       - n
@@ -309,6 +325,50 @@ components:
           type: array
           items:
             type: string
+        integrating_factor:
+          type:
+          - string
+          - 'null'
+        integrating_factor_latex:
+          type:
+          - string
+          - 'null'
+        integrating_factor_condition:
+          type:
+          - string
+          - 'null'
+        ratio_x:
+          type:
+          - string
+          - 'null'
+        ratio_y:
+          type:
+          - string
+          - 'null'
+        ratio_x_latex:
+          type:
+          - string
+          - 'null'
+        ratio_y_latex:
+          type:
+          - string
+          - 'null'
+        constant:
+          type:
+          - string
+          - 'null'
+        constant_latex:
+          type:
+          - string
+          - 'null'
+        particular_solution:
+          type:
+          - string
+          - 'null'
+        particular_solution_latex:
+          type:
+          - string
+          - 'null'
       required:
       - status
       - method
@@ -318,6 +378,8 @@ components:
       - verification
       - domain_restrictions
       - warnings
+      - integrating_factor
+      - integrating_factor_latex
     PlotInput:
       type: object
       properties:
@@ -662,3 +724,19 @@ components:
       - potential_latex
       - domain_restrictions
       - warnings
+    SolveInput:
+      type: object
+      properties:
+        m: *id001
+        n: *id002
+        x0:
+          type:
+          - number
+          - 'null'
+        y0:
+          type:
+          - number
+          - 'null'
+      required:
+      - m
+      - n

@@ -88,7 +88,36 @@ def solve_equation(request):
     result['domain_restrictions'] = sorted(set(result['domain_restrictions'] + source_restrictions(request.m,request.n)))
     result['equation_latex'] = equation_latex(m,n)
     result['classification'] = 'exact' if exactness(m,n)['is_exact'] else 'non-exact'
+    x0, y0 = getattr(request,'x0',None), getattr(request,'y0',None)
+    if (x0 is None) != (y0 is None):
+        raise HTTPException(400,'Provide both x0 and y0 to determine a particular solution.')
+    if x0 is not None and result['status']=='solved':
+        result.update(particular_solution(request,m,n,result,x0,y0))
     return result
+
+
+def particular_solution(request,m,n,solution,x0,y0):
+    if not math.isfinite(float(x0)) or not math.isfinite(float(y0)):
+        raise HTTPException(400,'Initial coordinates must be finite.')
+    from .parser import source_constraints
+    substitutions={x:sp.Rational(str(x0)),y:sp.Rational(str(y0))}
+    for source in (request.m,request.n):
+        for kind,expr in source_constraints(source):
+            value=expr.subs(substitutions)
+            if value.is_real is not True or not value.is_finite or (kind=='nonzero' and value==0) or (kind=='positive' and value<=0) or (kind=='nonnegative' and value<0) or (kind=='unit' and abs(value)>1) or (kind=='cosine' and sp.cos(value)==0):
+                raise HTTPException(422,'Initial condition is outside the original equation domain.')
+    factor=exactness(m,n)['_factor']
+    if factor is not None:
+        value=sp.simplify(factor.subs(substitutions))
+        if value.is_real is not True or not value.is_finite or value==0:
+            raise HTTPException(422,'Initial condition is outside the integrating factor domain.')
+    potential=parse_expression(solution['potential'])
+    constant=sp.simplify(potential.subs(substitutions))
+    if constant.is_real is not True or not constant.is_finite:
+        raise HTTPException(422,'Initial condition is outside the verified potential domain.')
+    return {'constant':sp.sstr(constant),'constant_latex':sp.latex(constant),
+            'particular_solution':sp.sstr(potential)+' = '+sp.sstr(constant),
+            'particular_solution_latex':sp.latex(potential)+' = '+sp.latex(constant)}
 
 
 def plot_equation(request):

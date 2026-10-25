@@ -1,0 +1,74 @@
+[
+  {
+    "id": "practice-1",
+    "m": "2*x*y+3",
+    "n": "x**2+4*y",
+    "expected_method": "exact"
+  },
+  {
+    "id": "practice-2",
+    "m": "y",
+    "n": "x",
+    "expected_method": "exact"
+  },
+  {
+    "id": "practice-3",
+    "m": "2*x",
+    "n": "2*y",
+    "expected_method": "exact"
+  },
+  {
+    "id": "practice-4",
+    "m": "cos(x)+y",
+    "n": "x+2*y",
+    "expected_method": "exact"
+  },
+  {
+    "id": "practice-5",
+    "m": "y",
+    "n": "x**2",
+    "expected_method": "integrating_factor_x"
+  },
+  {
+    "id": "practice-6",
+    "m": "(1+x)*y**2/2+y",
+    "n": "1+x*y",
+    "expected_method": "integrating_factor_x"
+  },
+  {
+    "id": "practice-7",
+    "m": "y",
+    "n": "x**3",
+    "expected_method": "integrating_factor_x"
+  },
+  {
+    "id": "practice-8",
+    "m": "y**2",
+    "n": "x*y",
+    "expected_method": "integrating_factor_y"
+  },
+  {
+    "id": "practice-9",
+    "m": "y**3",
+    "n": "x*y**2",
+    "expected_method": "integrating_factor_y"
+  },
+  {
+    "id": "practice-10",
+    "m": "y**2+1",
+    "n": "x*y",
+    "expected_method": "integrating_factor_y"
+  },
+  {
+    "id": "practice-11",
+    "m": "x+y",
+    "n": "1+x*y",
+    "expected_method": "unsupported"
+  },
+  {
+    "id": "practice-12",
+    "m": "y**2+x",
+    "n": "x*y**2+1",
+    "expected_method": "unsupported"
+  }
+]

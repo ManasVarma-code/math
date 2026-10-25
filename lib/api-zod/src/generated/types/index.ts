@@ -26,3 +26,4 @@ export * from './plotInput';
 export * from './plotResult';
 export * from './solutionResult';
 export * from './solutionResultVerification';
+export * from './solveInput';

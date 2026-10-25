@@ -109,4 +109,57 @@ class RegressionTests(unittest.TestCase):
         with self.assertRaises(HTTPException):check_equation(EquationInput(m='0',n='0'))
 
 
+class StudentWorkflowTests(unittest.TestCase):
+    def test_integrating_factor_is_first_class_and_exact_is_null(self):
+        for m,n,expected in [('y','x',None),('y','x**2','exp(-1/x)/x**2'),('y**2','x*y','1/y')]:
+            result=solve_equation(EquationInput(m=m,n=n))
+            self.assertEqual(result['integrating_factor'],expected)
+            if expected:self.assertTrue(result['integrating_factor_latex'])
+            else:self.assertIsNone(result['integrating_factor_latex'])
+
+    def test_unsupported_ratios_and_student_friendly_scope(self):
+        import sympy as sp
+        from app.parser import x,y
+        result=solve_equation(EquationInput(m='y**2+x',n='x*y**2+1'))
+        self.assertEqual(result['status'],'unsupported')
+        self.assertIsNone(result['integrating_factor'])
+        self.assertEqual(sp.simplify(parse_expression(result['ratio_x'])-(2*y-y**2)/(x*y**2+1)),0)
+        self.assertEqual(sp.simplify(parse_expression(result['ratio_y'])-(y**2-2*y)/(y**2+x)),0)
+        self.assertIn('not exact',result['steps'][0])
+        self.assertIn('conditions failed',result['steps'][0])
+        self.assertIn('μ(xy)',result['steps'][0])
+        self.assertIn('μ(x+y)',result['steps'][0])
+        self.assertIn('does not mean',result['steps'][0])
+
+    def test_particular_solution_exact_symbolic_constant(self):
+        from app.schemas import SolveInput
+        r=solve_equation(SolveInput(m='2*x*y+3',n='x**2+4*y',x0=1,y0=2))
+        self.assertEqual(r['constant'],'13')
+        self.assertEqual(r['particular_solution'],'x**2*y + 3*x + 2*y**2 = 13')
+        r=solve_equation(SolveInput(m='y',n='x',x0=0.1,y0=0.2))
+        self.assertEqual(r['constant'],'1/50')
+        r=solve_equation(SolveInput(m='y',n='x**2',x0=1,y0=2))
+        self.assertEqual(r['constant'],'2*exp(-1)')
+
+    def test_particular_solution_rejects_invalid_domains_and_partial_initial_condition(self):
+        from app.schemas import SolveInput
+        for args in [dict(m='y**2',n='x*y',x0=1,y0=0),dict(m='x/x',n='1',x0=0,y0=1),dict(m='y',n='x',x0=1)]:
+            with self.subTest(args=args),self.assertRaises(HTTPException):solve_equation(SolveInput(**args))
+
+    def test_every_practice_label_is_computed_and_solved_when_supported(self):
+        import json
+        from pathlib import Path
+        rows=json.loads((Path(__file__).resolve().parents[2]/'datasets/practice.json').read_text())
+        self.assertGreaterEqual(len(rows),12)
+        self.assertEqual(len({r['id'] for r in rows}),len(rows))
+        methods=set()
+        for row in rows:
+            result=solve_equation(EquationInput(m=row['m'],n=row['n']))
+            computed='unsupported' if result['status']=='unsupported' else result['method']
+            with self.subTest(row=row['id']):self.assertEqual(computed,row['expected_method'])
+            methods.add(computed)
+            if computed!='unsupported':self.assertTrue(all(result['verification'].values()))
+        self.assertEqual(methods,{'exact','integrating_factor_x','integrating_factor_y','unsupported'})
+
+
 if __name__=='__main__':unittest.main()
