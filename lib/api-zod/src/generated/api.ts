@@ -45,7 +45,11 @@ export const CheckEquationResponse = zod.object({
   "n_x_latex": zod.string().optional(),
   "equation_latex": zod.string().optional(),
   "factor_latex": zod.string().nullish(),
-  "domain_restrictions": zod.array(zod.string()).optional()
+  "domain_restrictions": zod.array(zod.string()).optional(),
+  "ratio_x": zod.string().nullish(),
+  "ratio_y": zod.string().nullish(),
+  "ratio_x_latex": zod.string().nullish(),
+  "ratio_y_latex": zod.string().nullish()
 })
 
 
@@ -60,7 +64,9 @@ export const solveEquationBodyNMax = 400;
 
 export const SolveEquationBody = zod.object({
   "m": zod.string().min(1).max(solveEquationBodyMMax),
-  "n": zod.string().min(1).max(solveEquationBodyNMax)
+  "n": zod.string().min(1).max(solveEquationBodyNMax),
+  "x0": zod.number().nullish(),
+  "y0": zod.number().nullish()
 })
 
 export const SolveEquationResponse = zod.object({
@@ -77,7 +83,18 @@ export const SolveEquationResponse = zod.object({
   "equation_latex": zod.string().optional(),
   "classification": zod.string().optional(),
   "steps_latex": zod.array(zod.string()).optional(),
-  "step_descriptions": zod.array(zod.string()).optional()
+  "step_descriptions": zod.array(zod.string()).optional(),
+  "integrating_factor": zod.string().nullable(),
+  "integrating_factor_latex": zod.string().nullable(),
+  "integrating_factor_condition": zod.string().nullish(),
+  "ratio_x": zod.string().nullish(),
+  "ratio_y": zod.string().nullish(),
+  "ratio_x_latex": zod.string().nullish(),
+  "ratio_y_latex": zod.string().nullish(),
+  "constant": zod.string().nullish(),
+  "constant_latex": zod.string().nullish(),
+  "particular_solution": zod.string().nullish(),
+  "particular_solution_latex": zod.string().nullish()
 })
 
 
@@ -184,7 +201,11 @@ export const GetExamplesResponse = zod.object({
   "n_x_latex": zod.string().optional(),
   "equation_latex": zod.string().optional(),
   "factor_latex": zod.string().nullish(),
-  "domain_restrictions": zod.array(zod.string()).optional()
+  "domain_restrictions": zod.array(zod.string()).optional(),
+  "ratio_x": zod.string().nullish(),
+  "ratio_y": zod.string().nullish(),
+  "ratio_x_latex": zod.string().nullish(),
+  "ratio_y_latex": zod.string().nullish()
 }).optional(),
   "solution": zod.object({
   "status": zod.string(),
@@ -200,7 +221,18 @@ export const GetExamplesResponse = zod.object({
   "equation_latex": zod.string().optional(),
   "classification": zod.string().optional(),
   "steps_latex": zod.array(zod.string()).optional(),
-  "step_descriptions": zod.array(zod.string()).optional()
+  "step_descriptions": zod.array(zod.string()).optional(),
+  "integrating_factor": zod.string().nullable(),
+  "integrating_factor_latex": zod.string().nullable(),
+  "integrating_factor_condition": zod.string().nullish(),
+  "ratio_x": zod.string().nullish(),
+  "ratio_y": zod.string().nullish(),
+  "ratio_x_latex": zod.string().nullish(),
+  "ratio_y_latex": zod.string().nullish(),
+  "constant": zod.string().nullish(),
+  "constant_latex": zod.string().nullish(),
+  "particular_solution": zod.string().nullish(),
+  "particular_solution_latex": zod.string().nullish()
 }).optional(),
   "equation_latex": zod.string().optional()
 })),

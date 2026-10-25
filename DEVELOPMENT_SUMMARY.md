@@ -84,3 +84,24 @@ pnpm dev
 ```
 
 Open http://localhost:5173. For the production static app, use `pnpm build` then `pnpm preview`. Full instructions and optional native regression commands are in [README.md](README.md).
+
+## Student learning extension
+
+- Integrating factors and tested conditions are first-class solve outputs, with nullable exact-equation values and generated OpenAPI/client validation.
+- Unsupported non-exact equations show both computed ratios and explain the one-variable method boundary as information.
+- The solver shows rendered cross-partials with Equal → Exact / Not equal → Non-exact verdicts, a simplified difference, a five-example dropdown and symbolic initial-condition constants with domain checks.
+- Practice mode draws from twelve curated equations. Neither classification nor score uses the curated labels: both come from the browser engine. Answers and derivations remain hidden until a choice is submitted.
+- Uploaded analytical datasets explicitly disclose the chosen reference C; students can copy fitted C into the reference. The template download uses `case_id,x_value,observed_y` and two example rows.
+- The unreferenced mockup sandbox was removed; workspace membership and the lockfile now exclude it. Optional HTTP adapters remain unused by the shipped app.
+- README syllabus mapping and the Replit stack/repo map now describe these learning workflows.
+
+An exhaustive list of modified, added and deleted files for this extension is in [CHANGED_FILES.md](CHANGED_FILES.md).
+
+### Student-extension verification results
+
+- `python -m pytest artifacts/equationpath/backend/tests -q`: **35 passed, 40 subtests passed**. Includes integrating-factor outputs, both unsupported ratios, exact symbolic constants, initial-domain rejection and all twelve practice classifications.
+- `pnpm test`: **5 passed** (CSV and notation unit tests).
+- `pnpm typecheck`: **passed**, including the retained optional Express adapter and regenerated contracts.
+- `pnpm build`: **passed** with the unchanged non-blocking Plotly chunk-size and tooltip sourcemap warnings.
+- `pnpm test:e2e`: **12 passed** (6.3 minutes), including all ten previous acceptance tests and two new practice/student-control tests. Existing four-viewport layout checks remain green.
+- Browser-only execution and dark dashboard styles are preserved. No API or backend process is required for any new feature.

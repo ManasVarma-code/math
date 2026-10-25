@@ -104,12 +104,29 @@ Optional native Python regression suite (not needed to run/build the app):
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r artifacts/equationpath/backend/requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r artifacts/equationpath/backend/requirements-dev.txt
 $env:PYTHONPATH = "artifacts/equationpath/backend"
 $env:PYTHONUTF8 = "1"
 .\.venv\Scripts\python.exe -m unittest discover -s artifacts/equationpath/backend/tests -v
+.\.venv\Scripts\python.exe -m pytest artifacts/equationpath/backend/tests -q
 ```
 
 After changing contracts, run `pnpm --filter @workspace/api-spec run codegen`.
 
 See [development summary](DEVELOPMENT_SUMMARY.md) for the changes and test results. Runtime packaging follows [Pyodide self-hosting documentation](https://pyodide.org/en/stable/usage/downloading-and-deploying.html).
+
+## Syllabus mapping
+
+| Student feature | Syllabus unit | What is computed |
+| --- | --- | --- |
+| Side-by-side cross-partials and exactness verdict | Unit IV — exactness test | Mᵧ, Nₓ and simplified Mᵧ − Nₓ |
+| Integrating-factor result and condition | Unit IV — non-exact equations | μ(x) or μ(y), tested ratios and transformed verification |
+| Worked gallery and practice mode | Unit IV — exact/non-exact classification | Real engine classification and worked steps; score stays in local state |
+| Particular solution at (x₀,y₀) | Unit IV — initial conditions | Exact symbolic C = F(x₀,y₀) on the valid domain |
+| Numerical curves and implicit contours | Unit IV — solution curves | Regular initial-value branches and verified potential level sets |
+| CSV datasets, reference C and fitted parameters | Unit V — curve fitting | Analytical C or numerical y₀ least-squares estimate |
+| Theoretical/fitted graphs, residuals and metrics | Unit V — residual comparison | Observed − predicted, squared residual, MSE, RMSE, MAE and R² |
+
+The exact CSV schema is **`case_id,x_value,observed_y`**. Download CSV template creates this header and two example rows. Uploaded data has no known reference C: the app displays the chosen reference explicitly and offers **Use fitted C as reference** after an analytical fit.
+
+The optional Express/FastAPI adapters are retained for development compatibility only and are unused by the shipped browser-only application.

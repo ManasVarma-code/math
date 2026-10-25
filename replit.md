@@ -16,7 +16,7 @@ No backend process, Python installation, DATABASE_URL, external API or account i
 
 ## Architecture
 
-- React, Vite, TypeScript and Tailwind retain the original EquationPath interface.
+- React, Vite, TypeScript and Tailwind retain the original EquationPath interface; Plotly renders interactive graphs and KaTeX renders equations.
 - A WebAssembly worker runs repository-owned SymPy, NumPy and SciPy algorithms.
 - Math runtime assets are bundled locally and SHA-256 verified during preparation. No CDN or external API is contacted during calculations.
 - Generated client hooks dispatch to the local worker with generated Zod request validation.
@@ -24,6 +24,14 @@ No backend process, Python installation, DATABASE_URL, external API or account i
 - Original Express/FastAPI adapters remain optional development tools. The frontend does not call them.
 
 ## Project map and scope
+
+- `artifacts/equationpath/src/App.tsx` — solver, examples, guide and navigation.
+- `artifacts/equationpath/src/components/` — visualizer, fitting, practice and notation.
+- `artifacts/equationpath/src/lib/` — local worker transport, WebAssembly loader, CSV and state utilities.
+- `artifacts/equationpath/backend/app/` — repository-owned SymPy/NumPy/SciPy computation modules bundled into Pyodide; optional FastAPI adapter.
+- `artifacts/equationpath/datasets/` — synthetic CSV datasets and curated practice equations.
+- `lib/api-spec/`, `lib/api-client-react/`, `lib/api-zod/` — contracts and generated hooks/validators.
+- `artifacts/api-server/` — optional Express adapter, unused by the shipped app.
 
 See README.md for source paths, exact startup commands, mathematical assumptions, data limits and optional native regression testing. See DEVELOPMENT_SUMMARY.md for implementation and validation details.
 

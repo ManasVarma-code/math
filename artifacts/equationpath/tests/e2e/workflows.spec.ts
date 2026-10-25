@@ -117,7 +117,7 @@ test("solver renders genuine results, invalidates edits, exports and transfers t
   await page
     .getByRole("button", { name: "Check exactness", exact: true })
     .click();
-  await expect(page.getByText("Exact equation", { exact: true })).toBeVisible();
+  await expect(page.getByText("Equal → Exact", { exact: true })).toBeVisible();
   await page
     .getByRole("button", { name: "Solve equation", exact: true })
     .click();
@@ -169,15 +169,13 @@ test("CSV cases, analytic sample fitting, all plots, exports and general ODE tra
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export CSV", exact: true }).click();
   expect((await download).suggestedFilename()).toContain("fit-results.csv");
-  await page
-    .getByTestId("input-csv-upload")
-    .setInputFiles({
-      name: "cases.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        "observed_y,case_id,x_value\n2,A,0\n1.213061319,A,0.5\n0.735758882,A,1\n3,B,0\n1.819591979,B,0.5\n1.103638324,B,1",
-      ),
-    });
+  await page.getByTestId("input-csv-upload").setInputFiles({
+    name: "cases.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      "observed_y,case_id,x_value\n2,A,0\n1.213061319,A,0.5\n0.735758882,A,1\n3,B,0\n1.819591979,B,0.5\n1.103638324,B,1",
+    ),
+  });
   await page.getByLabel("Case ID", { exact: true }).selectOption("B");
   await expect(page.getByText("Fit summary", { exact: true })).toBeHidden();
   await page
@@ -185,13 +183,11 @@ test("CSV cases, analytic sample fitting, all plots, exports and general ODE tra
     .click();
   await page.getByRole("button", { name: "Analyze observations" }).click();
   await expect(page.locator(".fit-parameter strong")).toContainText("3");
-  await page
-    .getByTestId("input-csv-upload")
-    .setInputFiles({
-      name: "invalid.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from("x,y\n1,2"),
-    });
+  await page.getByTestId("input-csv-upload").setInputFiles({
+    name: "invalid.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("x,y\n1,2"),
+  });
   await expect(page.getByRole("alert")).toContainText("Missing required");
   await expect(page.getByLabel("Case ID", { exact: true })).toHaveValue("B");
 });
@@ -248,13 +244,11 @@ test("complete Unit IV to Unit V workflow fits the actual solved ODE", async ({
       (x) => `experiment,${x},${3 * Math.exp(x) - x - 1}`,
     ),
   ].join("\n");
-  await page
-    .getByTestId("input-csv-upload")
-    .setInputFiles({
-      name: "actual-ode.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
+  await page.getByTestId("input-csv-upload").setInputFiles({
+    name: "actual-ode.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csv),
+  });
   await page.getByRole("button", { name: "Analyze observations" }).click();
   await expect(page.locator(".fit-parameter strong")).toHaveText("2");
   await expect(
@@ -323,3 +317,101 @@ for (const width of [375, 768, 1366, 1920])
       });
     }
   });
+
+test("practice mode hides answers, computes feedback and keeps score across questions", async ({
+  page,
+}) => {
+  await page.goto("/practice");
+  await expect(
+    page.getByRole("heading", { name: "Practice mode", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByTestId("practice-feedback")).toHaveCount(0);
+  await expect(page.getByLabel("Practice score")).toHaveText("Score: 0 / 0");
+  await page.getByRole("button", { name: "Exact", exact: true }).click();
+  await expect(page.getByTestId("practice-feedback")).toBeVisible();
+  await expect(page.getByLabel("Practice score")).toHaveText(
+    /Score: [01] \/ 1/,
+  );
+  await expect(
+    page.getByRole("button", { name: "Exact", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Next equation", exact: true })
+    .click();
+  await expect(page.getByTestId("practice-feedback")).toHaveCount(0);
+  await page.getByRole("button", { name: "Non-exact", exact: true }).click();
+  await expect(page.getByTestId("practice-feedback")).toBeVisible();
+  await expect(page.getByLabel("Practice score")).toHaveText(
+    /Score: [012] \/ 2/,
+  );
+});
+
+test("integrating factor, particular solution, unsupported state and CSV reference controls", async ({
+  page,
+}) => {
+  await page.goto("/solver");
+  await page
+    .getByLabel("Load example", { exact: true })
+    .selectOption("factor-y");
+  await page
+    .getByRole("button", { name: "Solve equation", exact: true })
+    .click();
+  await expect(
+    page.getByText("INTEGRATING FACTOR", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".katex-error")).toHaveCount(0);
+  await page.getByLabel("Transfer x₀").fill("2");
+  await page.getByLabel("Transfer y₀").fill("3");
+  await page
+    .getByRole("button", { name: "Find particular solution", exact: true })
+    .click();
+  await expect(
+    page.getByText("PARTICULAR SOLUTION", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Load example", { exact: true })
+    .selectOption("unsupported");
+  await page
+    .getByRole("button", { name: "Solve equation", exact: true })
+    .click();
+  await expect(
+    page.getByText("Non-exact · outside the supported methods", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("conditions failed", { exact: false }).first(),
+  ).toBeVisible();
+  await page.goto("/fitting");
+  const download = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download CSV template", exact: true })
+    .click();
+  expect((await download).suggestedFilename()).toBe(
+    "equationpath-template.csv",
+  );
+  await page
+    .getByTestId("input-csv-upload")
+    .setInputFiles({
+      name: "uploaded.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from("case_id,x_value,observed_y\nA,0,2\nA,1,0.735758882"),
+    });
+  await expect(
+    page.getByText("No reference C available for uploaded data", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Analyze observations", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Fit summary", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Use fitted C as reference", exact: true })
+    .click();
+  await expect(page.getByLabel("Theoretical reference C")).toHaveValue(
+    /^1\.999|^2/,
+  );
+});

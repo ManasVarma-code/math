@@ -114,7 +114,10 @@ export default function Fitting() {
     setSelected(d.id);
     setCaseId(Object.keys(d.cases)[0]);
     if (d.model) setModel(d.model);
-    setForm((f) => ({ ...f, known: String(d.parameter ?? 1) }));
+    setForm((f) => ({
+      ...f,
+      known: d.parameter === undefined ? f.known : String(d.parameter),
+    }));
     setCsvError("");
   }
   function addDataset(d: Dataset) {
@@ -361,6 +364,25 @@ export default function Fitting() {
                   </select>
                 </label>
                 {input("known", "Theoretical reference C")}
+                {dataset && dataset.parameter === undefined && (
+                  <p className="notice-line">
+                    No reference C available for uploaded data; theoretical
+                    curve uses C = {form.known}. Change it or use the fitted
+                    value.
+                  </p>
+                )}
+                <button
+                  className="btn btn-secondary"
+                  disabled={
+                    result?.parameter_name !== "C" ||
+                    !Number.isFinite(result?.parameter_value)
+                  }
+                  onClick={() =>
+                    change("known", String(result.parameter_value))
+                  }
+                >
+                  Use fitted C as reference
+                </button>
                 <label className="check-setting">
                   <input
                     type="checkbox"
@@ -374,6 +396,18 @@ export default function Fitting() {
           </section>
           <section className="panel">
             <h3>Dataset manager</h3>
+            <button
+              className="btn btn-secondary"
+              onClick={() =>
+                downloadFile(
+                  "equationpath-template.csv",
+                  "case_id,x_value,observed_y\nexample,0,2\nexample,1,0.735758882\n",
+                  "text/csv",
+                )
+              }
+            >
+              Download CSV template
+            </button>
             <label
               className="upload-zone"
               onDragOver={(e) => e.preventDefault()}

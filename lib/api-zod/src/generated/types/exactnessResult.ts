@@ -23,4 +23,12 @@ export interface ExactnessResult {
   /** @nullable */
   factor_latex?: string | null;
   domain_restrictions?: string[];
+  /** @nullable */
+  ratio_x?: string | null;
+  /** @nullable */
+  ratio_y?: string | null;
+  /** @nullable */
+  ratio_x_latex?: string | null;
+  /** @nullable */
+  ratio_y_latex?: string | null;
 }

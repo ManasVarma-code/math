@@ -41,9 +41,10 @@ import {
 import type { Example } from "@workspace/api-client-react";
 import { type ReactNode } from "react";
 const Visualizer = lazy(() => import("@/components/Visualizer"));
+const Practice = lazy(() => import("@/components/Practice"));
 const Fitting = lazy(() => import("@/components/Fitting"));
 import MathView from "@/components/MathView";
-import { equationPreview } from "@/lib/math-display";
+import { equationPreview, expressionLatex } from "@/lib/math-display";
 import { mathStatus } from "@/lib/browser-math";
 import { downloadFile, readStorage, writeStorage } from "@/lib/storage";
 
@@ -158,6 +159,7 @@ function AppFrame({ children }: { children: ReactNode }) {
     { href: "/solver", label: "Exactness solver", icon: Sigma },
     { href: "/visualizer", label: "Curve visualizer", icon: LineChart },
     { href: "/fitting", label: "Data fitting", icon: FileSpreadsheet },
+    { href: "/practice", label: "Practice mode", icon: Sigma },
     { href: "/examples", label: "Examples", icon: FlaskConical },
     { href: "/guide", label: "Learning guide", icon: CircleHelp },
     { href: "/history", label: "History", icon: History },
@@ -633,6 +635,15 @@ function Solver() {
   }, [n]);
   const [exact, setExact] = useState<any>(null);
   const [solution, setSolution] = useState<any>(null);
+  const [particular, setParticular] = useState<any>(null);
+  const [particularError, setParticularError] = useState("");
+  useEffect(() => {
+    setParticular(null);
+    setParticularError("");
+  }, [m, n, x0, y0]);
+  const particularSolve = useSolveEquation();
+  const particularLatest = useRef("");
+  particularLatest.current = JSON.stringify([m, n, x0, y0]);
   const check = useCheckEquation();
   const solve = useSolveEquation();
   const { data: examples } = useGetExamples({
@@ -733,6 +744,28 @@ function Solver() {
       <div className="solver-layout">
         <div className="solver-main">
           <Card className="equation-card">
+            <label className="field">
+              <span className="field-label">Load example</span>
+              <select
+                aria-label="Load example"
+                value=""
+                onChange={(e) => {
+                  const ex = examples?.examples.find(
+                    (item) => item.id === e.target.value,
+                  );
+                  if (ex) fillExample(ex);
+                }}
+              >
+                <option value="" disabled>
+                  Choose a worked example…
+                </option>
+                {examples?.examples.map((ex) => (
+                  <option key={ex.id} value={ex.id}>
+                    {ex.title} — {ex.kind}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="card-head">
               <div>
                 <div className="eyebrow">DEFINE YOUR EQUATION</div>
@@ -841,11 +874,7 @@ function Solver() {
                   <h3>What the derivatives tell us</h3>
                 </div>
                 <ResultPill good={exact.is_exact}>
-                  {exact.is_exact
-                    ? "Exact equation"
-                    : exact.factor
-                      ? "Factor supported"
-                      : "Not exact"}
+                  {exact.is_exact ? "Equal → Exact" : "Not equal → Non-exact"}
                 </ResultPill>
               </div>
               <div className="derivative-grid">
@@ -862,7 +891,13 @@ function Solver() {
                   className={`difference-cell ${exact.is_exact ? "is-exact" : ""}`}
                 >
                   <small>DIFFERENCE</small>
-                  <b>{exact.difference}</b>
+                  <MathView
+                    latex={
+                      equationPreview(exact.difference, "0")
+                        ? expressionLatex(exact.difference)
+                        : exact.difference
+                    }
+                  />
                 </div>
               </div>
               <div className="explanation">
@@ -900,6 +935,35 @@ function Solver() {
                   {solution.status}
                 </ResultPill>
               </div>
+              {solution.status === "unsupported" && (
+                <div className="notice-line" role="status">
+                  <Info size={18} />
+                  <div>
+                    <b>Non-exact · outside the supported methods</b>
+                    <p>{solution.steps?.[0]}</p>
+                    <MathView
+                      latex={`\\frac{M_y-N_x}{N} = ${solution.ratio_x_latex || "\\text{undefined}"}`}
+                      block
+                    />
+                    <MathView
+                      latex={`\\frac{N_x-M_y}{M} = ${solution.ratio_y_latex || "\\text{undefined}"}`}
+                      block
+                    />
+                  </div>
+                </div>
+              )}
+              {solution.integrating_factor && (
+                <div className="potential-result">
+                  <div>
+                    <small>INTEGRATING FACTOR</small>
+                    <p>{solution.integrating_factor_condition}</p>
+                  </div>
+                  <MathView
+                    latex={`\\mu = ${solution.integrating_factor_latex}`}
+                    block
+                  />
+                </div>
+              )}
               {solution.status === "solved" && (
                 <>
                   <div className="two-fields">
@@ -916,6 +980,59 @@ function Solver() {
                       onChange={setY0}
                     />
                   </div>
+                  <Button
+                    variant="secondary"
+                    disabled={
+                      particularSolve.isPending ||
+                      !x0.trim() ||
+                      !y0.trim() ||
+                      !Number.isFinite(Number(x0)) ||
+                      !Number.isFinite(Number(y0))
+                    }
+                    onClick={() => {
+                      setParticularError("");
+                      const signature = JSON.stringify([m, n, x0, y0]);
+                      particularSolve.mutate(
+                        {
+                          data: { ...payload, x0: Number(x0), y0: Number(y0) },
+                        },
+                        {
+                          onSuccess: (res) => {
+                            if (signature === particularLatest.current)
+                              setParticular(res);
+                          },
+                          onError: (e) => {
+                            if (signature === particularLatest.current)
+                              setParticularError(errText(e));
+                          },
+                        },
+                      );
+                    }}
+                  >
+                    {particularSolve.isPending
+                      ? "Computing C…"
+                      : "Find particular solution"}
+                  </Button>
+                  {particular && (
+                    <div className="potential-result">
+                      <div>
+                        <small>PARTICULAR SOLUTION</small>
+                        <MathView
+                          latex={`C = ${particular.constant_latex}`}
+                          block
+                        />
+                        <MathView
+                          latex={particular.particular_solution_latex}
+                          block
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {particularError && (
+                    <p className="notice-line" role="alert">
+                      {particularError}
+                    </p>
+                  )}
                   <div className="equation-actions">
                     <Link
                       href="/visualizer?from=solver"
@@ -1639,6 +1756,7 @@ function Router() {
     "/solver": <Solver />,
     "/visualizer": <Visualizer />,
     "/fitting": <Fitting />,
+    "/practice": <Practice />,
     "/examples": <Examples />,
     "/guide": <Guide />,
     "/history": <HistoryPage />,

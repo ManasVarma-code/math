@@ -37,7 +37,8 @@ import type {
   NumericalFitInput,
   PlotInput,
   PlotResult,
-  SolutionResult
+  SolutionResult,
+  SolveInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -268,7 +269,7 @@ export const getSolveEquationUrl = () => {
 /**
  * @summary Solve an exact equation or apply a supported integrating factor
  */
-export const solveEquation = async (equationInput: EquationInput, options?: Parameters<typeof customFetch>[1]): Promise<SolutionResult> => {
+export const solveEquation = async (solveInput: SolveInput, options?: Parameters<typeof customFetch>[1]): Promise<SolutionResult> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -289,7 +290,7 @@ return customFetch<SolutionResult>(getSolveEquationUrl(),
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(equationInput)
+    body: JSON.stringify(solveInput)
   }
 );}
 
@@ -327,9 +328,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SolveEquationMutationResult = NonNullable<Awaited<ReturnType<typeof solveEquation>>>
-    export type SolveEquationMutationBody = BodyType<EquationInput>
+    export type SolveEquationMutationBody = BodyType<SolveInput>
     export type SolveEquationMutationError = ErrorType<ErrorResponse>
-    export type SolveEquationMutationVariables = {data: BodyType<EquationInput>}
+    export type SolveEquationMutationVariables = {data: BodyType<SolveInput>}
 
     /**
  * @summary Solve an exact equation or apply a supported integrating factor

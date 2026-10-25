@@ -1,7 +1,7 @@
 """Optional FastAPI adapter; the shipped web app runs entirely in its browser worker."""
 from typing import Any
 from fastapi import FastAPI, HTTPException
-from .schemas import EquationInput, PlotInput, ContourInput, NumericalFitInput, AnalyzeInput, Observation
+from .schemas import SolveInput, EquationInput, PlotInput, ContourInput, NumericalFitInput, AnalyzeInput, Observation
 from .engine import check_equation, solve_equation, plot_equation, contour_equation, get_examples, healthz
 from .analysis import analyze_dataset, fit_ode_dataset, _predict_from_initial
 from .parser import parse_expression
@@ -19,7 +19,7 @@ _work_slots=asyncio.Semaphore(2)
 
 def _worker(connection,operation,payload):
     try:
-        schemas={'check':EquationInput,'solve':EquationInput,'plot':PlotInput,'contour':ContourInput,'analyze':AnalyzeInput,'fit':NumericalFitInput}
+        schemas={'check':EquationInput,'solve':SolveInput,'plot':PlotInput,'contour':ContourInput,'analyze':AnalyzeInput,'fit':NumericalFitInput}
         handlers={'check':check_equation,'solve':solve_equation,'plot':plot_equation,'contour':contour_equation,'analyze':analyze_dataset,'fit':fit_ode_dataset}
         result=get_examples() if operation=='examples' else handlers[operation](schemas[operation].model_validate(payload))
         connection.send((200,result))
@@ -52,7 +52,7 @@ async def compute(operation,payload=None):
 @app.post('/equations/check')
 async def check_route(request:EquationInput): return await compute('check',request.model_dump())
 @app.post('/equations/solve')
-async def solve_route(request:EquationInput): return await compute('solve',request.model_dump())
+async def solve_route(request:SolveInput): return await compute('solve',request.model_dump())
 @app.post('/equations/plot')
 async def plot_route(request:PlotInput): return await compute('plot',request.model_dump())
 @app.post('/equations/contour')

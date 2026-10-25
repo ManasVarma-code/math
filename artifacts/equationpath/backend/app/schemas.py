@@ -9,6 +9,10 @@ class EquationInput(FiniteModel):
     m: str = Field(min_length=1, max_length=400)
     n: str = Field(min_length=1, max_length=400)
 
+class SolveInput(EquationInput):
+    x0: float | None = None
+    y0: float | None = None
+
 class PlotInput(EquationInput):
     x0: float
     y0: float

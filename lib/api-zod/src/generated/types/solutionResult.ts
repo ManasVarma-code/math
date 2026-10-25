@@ -24,4 +24,26 @@ export interface SolutionResult {
   classification?: string;
   steps_latex?: string[];
   step_descriptions?: string[];
+  /** @nullable */
+  integrating_factor: string | null;
+  /** @nullable */
+  integrating_factor_latex: string | null;
+  /** @nullable */
+  integrating_factor_condition?: string | null;
+  /** @nullable */
+  ratio_x?: string | null;
+  /** @nullable */
+  ratio_y?: string | null;
+  /** @nullable */
+  ratio_x_latex?: string | null;
+  /** @nullable */
+  ratio_y_latex?: string | null;
+  /** @nullable */
+  constant?: string | null;
+  /** @nullable */
+  constant_latex?: string | null;
+  /** @nullable */
+  particular_solution?: string | null;
+  /** @nullable */
+  particular_solution_latex?: string | null;
 }

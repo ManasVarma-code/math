@@ -39,6 +39,14 @@ export interface ExactnessResult {
   /** @nullable */
   factor_latex?: string | null;
   domain_restrictions?: string[];
+  /** @nullable */
+  ratio_x?: string | null;
+  /** @nullable */
+  ratio_y?: string | null;
+  /** @nullable */
+  ratio_x_latex?: string | null;
+  /** @nullable */
+  ratio_y_latex?: string | null;
 }
 
 export type SolutionResultVerification = { [key: string]: unknown };
@@ -60,6 +68,28 @@ export interface SolutionResult {
   classification?: string;
   steps_latex?: string[];
   step_descriptions?: string[];
+  /** @nullable */
+  integrating_factor: string | null;
+  /** @nullable */
+  integrating_factor_latex: string | null;
+  /** @nullable */
+  integrating_factor_condition?: string | null;
+  /** @nullable */
+  ratio_x?: string | null;
+  /** @nullable */
+  ratio_y?: string | null;
+  /** @nullable */
+  ratio_x_latex?: string | null;
+  /** @nullable */
+  ratio_y_latex?: string | null;
+  /** @nullable */
+  constant?: string | null;
+  /** @nullable */
+  constant_latex?: string | null;
+  /** @nullable */
+  particular_solution?: string | null;
+  /** @nullable */
+  particular_solution_latex?: string | null;
 }
 
 export interface PlotInput {
@@ -236,5 +266,22 @@ export interface ContourResult {
   potential_latex: string;
   domain_restrictions: string[];
   warnings: string[];
+}
+
+export interface SolveInput {
+  /**
+     * @minLength 1
+     * @maxLength 400
+     */
+  m: string;
+  /**
+     * @minLength 1
+     * @maxLength 400
+     */
+  n: string;
+  /** @nullable */
+  x0?: number | null;
+  /** @nullable */
+  y0?: number | null;
 }
 
