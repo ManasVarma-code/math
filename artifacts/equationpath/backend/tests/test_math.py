@@ -69,6 +69,36 @@ class EquationPathMathTests(unittest.TestCase):
         self.assertGreaterEqual(result["metrics"]["rmse"], 0)
         self.assertEqual(len(result["rows"]), 5)
 
+    def test_two_exact_examples(self) -> None:
+        for m_text, n_text in [("2*x*y + 3", "x**2 + 4*y"), ("y", "x")]:
+            m, n = parse_expression(m_text), parse_expression(n_text)
+            self.assertTrue(exactness(m, n)["is_exact"])
+            result = solve(m, n)
+            self.assertEqual(result["status"], "solved")
+            self.assertTrue(all(result["verification"].values()))
+
+    def test_zero_variance_r_squared_is_undefined(self) -> None:
+        result = analyze_dataset(AnalyzeInput(
+            model="quadratic",
+            observations=[
+                Observation(x_value=0, observed_y=4),
+                Observation(x_value=1, observed_y=4),
+                Observation(x_value=2, observed_y=4),
+            ],
+        ))
+        self.assertIsNone(result["metrics"]["r_squared"])
+
+    def test_duplicate_observations_are_rejected(self) -> None:
+        from fastapi import HTTPException
+        with self.assertRaises(HTTPException):
+            analyze_dataset(AnalyzeInput(
+                model="decay",
+                observations=[
+                    Observation(x_value=1, observed_y=1),
+                    Observation(x_value=1, observed_y=2),
+                ],
+            ))
+
 
 if __name__ == "__main__":
     unittest.main()
