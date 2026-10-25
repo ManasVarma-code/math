@@ -203,7 +203,7 @@ function Overview() {
 
 function Solver() {
   const query = new URLSearchParams(window.location.search);
-  const [m, setM] = useState('2*x*y + 3*x^2');
+  const [m, setM] = useState('2*x*y + 3');
   const [n, setN] = useState('x^2 + 4*y');
   const [exact, setExact] = useState<any>(null);
   const [solution, setSolution] = useState<any>(null);
