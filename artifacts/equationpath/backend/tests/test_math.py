@@ -5,6 +5,8 @@ from app.main import (
     AnalyzeInput,
     Observation,
     analyze_dataset,
+    NumericalFitInput,
+    fit_ode_dataset,
     exactness,
     parse_expression,
     plot_equation,
@@ -89,7 +91,7 @@ class EquationPathMathTests(unittest.TestCase):
         self.assertIsNone(result["metrics"]["r_squared"])
 
     def test_duplicate_observations_are_rejected(self) -> None:
-        from fastapi import HTTPException
+        from app.errors import CalculationError as HTTPException
         with self.assertRaises(HTTPException):
             analyze_dataset(AnalyzeInput(
                 model="decay",
@@ -97,6 +99,29 @@ class EquationPathMathTests(unittest.TestCase):
                     Observation(x_value=1, observed_y=1),
                     Observation(x_value=1, observed_y=2),
                 ],
+            ))
+
+    def test_numerical_fit_recovers_decay_initial_value(self) -> None:
+        observations = [
+            Observation(x_value=0.25*i, observed_y=2.5*math.exp(-0.25*i))
+            for i in range(9)
+        ]
+        result = fit_ode_dataset(NumericalFitInput(
+            m="y", n="1", observations=observations, x0=0, initial_guess=1
+        ))
+        self.assertAlmostEqual(result["parameter_value"], 2.5, delta=1e-3)
+        self.assertLess(result["metrics"]["rmse"], 1e-4)
+
+    def test_numerical_fit_rejects_duplicate_x_coordinates(self) -> None:
+        from app.errors import CalculationError as HTTPException
+        with self.assertRaises(HTTPException):
+            fit_ode_dataset(NumericalFitInput(
+                m="y", n="1",
+                observations=[
+                    Observation(x_value=0, observed_y=2),
+                    Observation(x_value=0, observed_y=2),
+                    Observation(x_value=1, observed_y=1),
+                ]
             ))
 
 

@@ -322,10 +322,15 @@ async function parseSuccessBody(
   }
 }
 
+export type LocalRequestHandler = (input: RequestInfo | URL, options?: CustomFetchOptions) => Promise<unknown>;
+let localRequestHandler: LocalRequestHandler | null = null;
+export function setLocalRequestHandler(handler: LocalRequestHandler | null) { localRequestHandler = handler; }
+
 export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
 ): Promise<T> {
+  if (localRequestHandler) return await localRequestHandler(input, options) as T;
   input = applyBaseUrl(input);
   const { responseType = "auto", headers: headersInit, ...init } = options;
 

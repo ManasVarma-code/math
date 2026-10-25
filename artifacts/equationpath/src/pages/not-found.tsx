@@ -1,23 +1,18 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
-
+import { Link } from "wouter";
+import { CircleHelp, ArrowRight } from "lucide-react";
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              404 Page Not Found
-            </h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <section className="panel history-empty">
+      <CircleHelp size={28} />
+      <div className="eyebrow">PAGE NOT FOUND</div>
+      <h1>This path is not in the workspace</h1>
+      <p>
+        Return to the overview to solve an equation, explore a curve or compare
+        observations.
+      </p>
+      <Link href="/" className="btn btn-primary">
+        Back to overview <ArrowRight size={16} />
+      </Link>
+    </section>
   );
 }

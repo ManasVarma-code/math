@@ -40,7 +40,12 @@ export const CheckEquationResponse = zod.object({
   "is_exact": zod.boolean(),
   "method": zod.string(),
   "factor": zod.string().nullable(),
-  "explanation": zod.string()
+  "explanation": zod.string(),
+  "m_y_latex": zod.string().optional(),
+  "n_x_latex": zod.string().optional(),
+  "equation_latex": zod.string().optional(),
+  "factor_latex": zod.string().nullish(),
+  "domain_restrictions": zod.array(zod.string()).optional()
 })
 
 
@@ -66,7 +71,13 @@ export const SolveEquationResponse = zod.object({
   "steps": zod.array(zod.string()),
   "verification": zod.record(zod.string(), zod.unknown()),
   "domain_restrictions": zod.array(zod.string()),
-  "warnings": zod.array(zod.string())
+  "warnings": zod.array(zod.string()),
+  "potential_latex": zod.string().optional(),
+  "solution_latex": zod.string().optional(),
+  "equation_latex": zod.string().optional(),
+  "classification": zod.string().optional(),
+  "steps_latex": zod.array(zod.string()).optional(),
+  "step_descriptions": zod.array(zod.string()).optional()
 })
 
 
@@ -101,7 +112,9 @@ export const PlotEquationResponse = zod.object({
   "x0": zod.number(),
   "y0": zod.number(),
   "warnings": zod.array(zod.string()),
-  "method": zod.string()
+  "method": zod.string(),
+  "field_x": zod.array(zod.number().nullable()).optional(),
+  "field_y": zod.array(zod.number().nullable()).optional()
 })
 
 
@@ -109,6 +122,7 @@ export const PlotEquationResponse = zod.object({
  * @summary Compare observations with an ODE solution family and fit its constant
  */
 export const analyzeDatasetBodyObservationsMin = 2;
+export const analyzeDatasetBodyObservationsMax = 2000;
 
 export const analyzeDatasetBodyFitParameterDefault = true;
 
@@ -117,16 +131,29 @@ export const AnalyzeDatasetBody = zod.object({
   "observations": zod.array(zod.object({
   "x_value": zod.number(),
   "observed_y": zod.number()
-})).min(analyzeDatasetBodyObservationsMin),
-  "fit_parameter": zod.boolean().default(analyzeDatasetBodyFitParameterDefault)
+})).min(analyzeDatasetBodyObservationsMin).max(analyzeDatasetBodyObservationsMax),
+  "fit_parameter": zod.boolean().default(analyzeDatasetBodyFitParameterDefault),
+  "known_parameter": zod.number().nullish()
 })
 
 export const AnalyzeDatasetResponse = zod.object({
   "model": zod.string(),
   "parameter_name": zod.string().nullable(),
   "parameter_value": zod.number().nullable(),
-  "rows": zod.array(zod.record(zod.string(), zod.unknown())),
-  "metrics": zod.record(zod.string(), zod.number().nullable()),
+  "rows": zod.array(zod.object({
+  "x_value": zod.number(),
+  "observed_y": zod.number(),
+  "predicted_y": zod.number().nullable(),
+  "residual": zod.number().nullable(),
+  "squared_residual": zod.number().nullable(),
+  "theoretical_y": zod.number().nullable()
+})),
+  "metrics": zod.object({
+  "mse": zod.number().nullable(),
+  "rmse": zod.number().nullable(),
+  "mae": zod.number().nullable(),
+  "r_squared": zod.number().nullable()
+}),
   "note": zod.string()
 })
 
@@ -142,9 +169,134 @@ export const GetExamplesResponse = zod.object({
   "n": zod.string(),
   "kind": zod.string(),
   "expected_solution": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "analysis": zod.object({
+  "m": zod.string(),
+  "n": zod.string(),
+  "m_y": zod.string(),
+  "n_x": zod.string(),
+  "difference": zod.string(),
+  "is_exact": zod.boolean(),
+  "method": zod.string(),
+  "factor": zod.string().nullable(),
+  "explanation": zod.string(),
+  "m_y_latex": zod.string().optional(),
+  "n_x_latex": zod.string().optional(),
+  "equation_latex": zod.string().optional(),
+  "factor_latex": zod.string().nullish(),
+  "domain_restrictions": zod.array(zod.string()).optional()
+}).optional(),
+  "solution": zod.object({
+  "status": zod.string(),
+  "method": zod.string(),
+  "potential": zod.string().nullable(),
+  "implicit_solution": zod.string().nullable(),
+  "steps": zod.array(zod.string()),
+  "verification": zod.record(zod.string(), zod.unknown()),
+  "domain_restrictions": zod.array(zod.string()),
+  "warnings": zod.array(zod.string()),
+  "potential_latex": zod.string().optional(),
+  "solution_latex": zod.string().optional(),
+  "equation_latex": zod.string().optional(),
+  "classification": zod.string().optional(),
+  "steps_latex": zod.array(zod.string()).optional(),
+  "step_descriptions": zod.array(zod.string()).optional()
+}).optional(),
+  "equation_latex": zod.string().optional()
 })),
   "datasets": zod.array(zod.record(zod.string(), zod.unknown()))
+})
+
+
+/**
+ * @summary fitOdeDataset
+ */
+export const fitOdeDatasetBodyMMax = 400;
+
+export const fitOdeDatasetBodyNMax = 400;
+
+export const fitOdeDatasetBodyObservationsMin = 3;
+export const fitOdeDatasetBodyObservationsMax = 200;
+
+export const fitOdeDatasetBodyX0Default = 0;
+export const fitOdeDatasetBodyInitialGuessDefault = 1;
+export const fitOdeDatasetBodyLowerBoundDefault = -100000;
+export const fitOdeDatasetBodyUpperBoundDefault = 100000;
+
+export const FitOdeDatasetBody = zod.object({
+  "m": zod.string().min(1).max(fitOdeDatasetBodyMMax),
+  "n": zod.string().min(1).max(fitOdeDatasetBodyNMax),
+  "observations": zod.array(zod.object({
+  "x_value": zod.number(),
+  "observed_y": zod.number()
+})).min(fitOdeDatasetBodyObservationsMin).max(fitOdeDatasetBodyObservationsMax),
+  "x0": zod.number().default(fitOdeDatasetBodyX0Default),
+  "initial_guess": zod.number().default(fitOdeDatasetBodyInitialGuessDefault),
+  "lower_bound": zod.number().default(fitOdeDatasetBodyLowerBoundDefault),
+  "upper_bound": zod.number().default(fitOdeDatasetBodyUpperBoundDefault)
+})
+
+export const FitOdeDatasetResponse = zod.object({
+  "model": zod.string(),
+  "parameter_name": zod.string().nullable(),
+  "parameter_value": zod.number().nullable(),
+  "rows": zod.array(zod.object({
+  "x_value": zod.number(),
+  "observed_y": zod.number(),
+  "predicted_y": zod.number().nullable(),
+  "residual": zod.number().nullable(),
+  "squared_residual": zod.number().nullable(),
+  "theoretical_y": zod.number().nullable()
+})),
+  "metrics": zod.object({
+  "mse": zod.number().nullable(),
+  "rmse": zod.number().nullable(),
+  "mae": zod.number().nullable(),
+  "r_squared": zod.number().nullable()
+}),
+  "note": zod.string()
+})
+
+
+/**
+ * @summary contourEquation
+ */
+export const contourEquationBodyMMax = 400;
+
+export const contourEquationBodyNMax = 400;
+
+export const contourEquationBodyXMinDefault = -5;
+export const contourEquationBodyXMaxDefault = 5;
+export const contourEquationBodyYMinDefault = -5;
+export const contourEquationBodyYMaxDefault = 5;
+export const contourEquationBodyResolutionDefault = 90;
+export const contourEquationBodyResolutionMin = 30;
+export const contourEquationBodyResolutionMax = 140;
+
+
+
+export const ContourEquationBody = zod.object({
+  "m": zod.string().min(1).max(contourEquationBodyMMax),
+  "n": zod.string().min(1).max(contourEquationBodyNMax),
+  "x0": zod.number(),
+  "y0": zod.number(),
+  "x_min": zod.number().default(contourEquationBodyXMinDefault),
+  "x_max": zod.number().default(contourEquationBodyXMaxDefault),
+  "y_min": zod.number().default(contourEquationBodyYMinDefault),
+  "y_max": zod.number().default(contourEquationBodyYMaxDefault),
+  "resolution": zod.number().int().min(contourEquationBodyResolutionMin).max(contourEquationBodyResolutionMax).default(contourEquationBodyResolutionDefault)
+})
+
+export const ContourEquationResponse = zod.object({
+  "x": zod.array(zod.number()),
+  "y": zod.array(zod.number()),
+  "z": zod.array(zod.array(zod.number().nullable())),
+  "level": zod.number(),
+  "field_x": zod.array(zod.number().nullable()),
+  "field_y": zod.array(zod.number().nullable()),
+  "potential_latex": zod.string(),
+  "domain_restrictions": zod.array(zod.string()),
+  "warnings": zod.array(zod.string())
 })
 
 

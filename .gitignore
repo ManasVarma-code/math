@@ -53,3 +53,10 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.venv/
+.pythonlibs/
+__pycache__/
+*.pyc
+test-results/
+playwright-report/
+artifacts/equationpath/public/python/

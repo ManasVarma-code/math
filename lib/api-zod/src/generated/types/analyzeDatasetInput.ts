@@ -10,7 +10,12 @@ import type { Observation } from './observation';
 
 export interface AnalyzeDatasetInput {
   model: AnalyzeDatasetInputModel;
-  /** @minItems 2 */
+  /**
+     * @minItems 2
+     * @maxItems 2000
+     */
   observations: Observation[];
   fit_parameter?: boolean;
+  /** @nullable */
+  known_parameter?: number | null;
 }

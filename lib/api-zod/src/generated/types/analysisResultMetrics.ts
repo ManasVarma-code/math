@@ -6,4 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type AnalysisResultMetrics = {[key: string]: number | null};
+export type AnalysisResultMetrics = {
+  /** @nullable */
+  mse: number | null;
+  /** @nullable */
+  rmse: number | null;
+  /** @nullable */
+  mae: number | null;
+  /** @nullable */
+  r_squared: number | null;
+};

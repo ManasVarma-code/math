@@ -13,4 +13,6 @@ export interface PlotResult {
   y0: number;
   warnings: string[];
   method: string;
+  field_x?: (number | null)[];
+  field_y?: (number | null)[];
 }

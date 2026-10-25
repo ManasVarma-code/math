@@ -2,8 +2,9 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
+import { existsSync } from "node:fs";
 
-const rawPort = process.env["PORT"];
+const rawPort = process.env["PORT"] ?? "3001";
 
 if (!rawPort) {
   throw new Error(
@@ -19,11 +20,16 @@ if (Number.isNaN(port) || port <= 0) {
 
 const workspaceRoot = path.resolve(process.cwd(), "../..");
 const mathBackendPath = path.resolve(process.cwd(), "../equationpath/backend");
-const pythonPath = path.join(workspaceRoot, ".pythonlibs", "bin", "python");
+const candidates = [
+  path.join(workspaceRoot, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python"),
+  path.join(workspaceRoot, ".pythonlibs", "bin", "python"),
+];
+const pythonPath = process.env.PYTHON_PATH ?? candidates.find(existsSync) ?? "python";
 const mathServicePort = Number(process.env.MATH_SERVICE_PORT ?? 8765);
 let mathProcess: ChildProcess | undefined;
 
 async function startMathService(): Promise<void> {
+  if (process.env.MATH_SERVICE_URL) return;
   mathProcess = spawn(
     pythonPath,
     [
@@ -39,7 +45,7 @@ async function startMathService(): Promise<void> {
     ],
     {
       cwd: mathBackendPath,
-      stdio: "ignore",
+      stdio: ["ignore", "inherit", "inherit"],
       env: { ...process.env, PYTHONUNBUFFERED: "1" },
     },
   );
@@ -58,7 +64,7 @@ async function startMathService(): Promise<void> {
   while (Date.now() < deadline) {
     if (mathProcess.exitCode !== null) {
       logger.error({ exitCode: mathProcess.exitCode }, "EquationPath math service failed during startup");
-      return;
+      throw new Error("Math service failed to start. Install backend/requirements.txt into .venv or set PYTHON_PATH.");
     }
     try {
       const response = await fetch(healthUrl, { signal: AbortSignal.timeout(500) });
@@ -70,7 +76,7 @@ async function startMathService(): Promise<void> {
       await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
-  logger.error("EquationPath math service did not become ready within 20 seconds");
+  throw new Error("EquationPath math service did not become ready within 20 seconds");
 }
 
 function stopMathService(): void {

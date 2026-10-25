@@ -9,10 +9,14 @@ import {
   PlotEquationResponse,
   SolveEquationBody,
   SolveEquationResponse,
+  FitOdeDatasetBody,
+  FitOdeDatasetResponse,
+  ContourEquationBody,
+  ContourEquationResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
-const mathServiceUrl = process.env.MATH_SERVICE_URL ?? "http://127.0.0.1:8765";
+const mathServiceUrl = process.env.MATH_SERVICE_URL ?? `http://127.0.0.1:${process.env.MATH_SERVICE_PORT ?? 8765}`;
 
 async function forward(
   req: Request,
@@ -29,13 +33,16 @@ async function forward(
     });
     const result: unknown = await response.json();
     if (!response.ok) {
-      const detail =
+      let detail =
         typeof result === "object" &&
         result !== null &&
         "detail" in result &&
         typeof result.detail === "string"
           ? result.detail
           : "The math service could not process this request.";
+      if (typeof result === "object" && result !== null && "detail" in result && Array.isArray(result.detail)) {
+        detail = result.detail.slice(0, 3).map((item) => `${Array.isArray(item.loc) ? item.loc.join(".") : "Input"}: ${String(item.msg ?? "Invalid value")}`).join("; ");
+      }
       res.status(response.status).json({ error: detail });
       return null;
     }
@@ -50,11 +57,12 @@ async function forward(
 function validateBody<T>(
   req: Request,
   res: Response,
-  schema: { safeParse: (value: unknown) => { success: true; data: T } | { success: false; error: { message: string } } },
+  schema: { safeParse: (value: unknown) => { success: true; data: T } | { success: false; error: { message: string; issues?: { path: (string | number)[]; message: string }[] } } },
 ): T | null {
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    const message = parsed.error.issues?.slice(0, 3).map(issue => `${issue.path.join(".") || "Input"}: ${issue.message}`).join("; ");
+    res.status(400).json({ error: message || parsed.error.message });
     return null;
   }
   return parsed.data;
@@ -90,6 +98,20 @@ router.post("/data/analyze", async (req, res): Promise<void> => {
   const result = await forward(req, res, "/data/analyze", input);
   if (result === null) return;
   res.json(AnalyzeDatasetResponse.parse(result));
+});
+
+router.post("/data/fit-ode", async (req, res): Promise<void> => {
+  const input = validateBody(req, res, FitOdeDatasetBody);
+  if (!input) return;
+  const result = await forward(req, res, "/data/fit-ode", input);
+  if (result !== null) res.json(FitOdeDatasetResponse.parse(result));
+});
+
+router.post("/equations/contour", async (req, res): Promise<void> => {
+  const input = validateBody(req, res, ContourEquationBody);
+  if (!input) return;
+  const result = await forward(req, res, "/equations/contour", input);
+  if (result !== null) res.json(ContourEquationResponse.parse(result));
 });
 
 router.get("/examples", async (req, res): Promise<void> => {
