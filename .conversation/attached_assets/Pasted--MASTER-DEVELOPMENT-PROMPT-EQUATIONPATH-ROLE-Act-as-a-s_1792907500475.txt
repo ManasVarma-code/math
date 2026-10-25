@@ -1,0 +1,881 @@
+# MASTER DEVELOPMENT PROMPT — EQUATIONPATH
+
+## ROLE
+
+Act as a senior full-stack software engineer, mathematical computing engineer, UI/UX designer, and educational software architect.
+
+Build a complete, functional, polished web application named:
+
+**EquationPath — Exact / Non-Exact ODE Studio**
+
+This is an interactive mathematical learning and computational platform focused on first-order ordinary differential equations, exactness detection, supported integrating-factor methods, solution visualization, and curve fitting with residual analysis.
+
+The application must be mathematically correct, responsive, visually impressive, and genuinely functional.
+
+Do not build a static prototype, landing-page-only website, or mock dashboard.
+
+The finished product must perform real symbolic computations and numerical analysis on user-provided equations and datasets.
+
+---
+
+# 1. PROJECT OBJECTIVE
+
+Students commonly struggle to:
+
+- Identify whether a first-order differential equation is exact.
+- Calculate partial derivatives correctly.
+- Understand why an equation is exact or non-exact.
+- Identify and calculate integrating factors for supported non-exact equations.
+- Follow the mathematical procedure for solving differential equations.
+- Visualize solutions and understand how initial conditions affect curves.
+- Compare theoretical solutions with sampled experimental data.
+- Understand curve fitting, numerical error, and residual distributions.
+
+EquationPath should provide one interactive environment that addresses all these problems.
+
+Academic coverage:
+
+**Unit IV — Differential Equations**
+- Exact differential equations.
+- Non-exact differential equations.
+- Integrating factors for supported simple cases.
+- Symbolic verification.
+- Worked solutions.
+
+**Unit V — Curve Fitting**
+- Observed vs predicted data.
+- Least-squares fitting where applicable.
+- Residual analysis.
+- RMSE, MAE, MSE, and R².
+- Visualization of fitted curves and fitting errors.
+
+---
+
+# 2. TECH STACK
+
+Frontend:
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Lucide React icons
+- Plotly.js
+- KaTeX
+- Framer Motion for subtle animations
+
+Backend:
+- Python
+- FastAPI
+- SymPy
+- NumPy
+- SciPy
+- Pandas
+- Pydantic
+
+Architecture:
+- Modular React frontend.
+- Separate Python calculation backend.
+- REST API communication.
+- Mathematical computations must occur in Python.
+- Local persistence for user history and datasets.
+
+No paid APIs, AI subscriptions, external mathematical engines, or cloud infrastructure are required.
+
+Do not introduce authentication or Supabase unless genuinely necessary.
+
+---
+
+# 3. VISUAL DESIGN REQUIREMENTS
+
+Create a premium scientific computing interface.
+
+Design inspiration:
+- Desmos for mathematical interaction.
+- GeoGebra for educational visualization.
+- Modern analytical dashboards.
+- Linear-style spacing and navigation.
+- Professional scientific software.
+
+Visual direction:
+- Elegant dark-first interface.
+- Background: deep navy/charcoal.
+- Accent colors: electric cyan, violet, and restrained blue.
+- Subtle gradients.
+- Minimal, sophisticated glass effects.
+- Thin borders and carefully controlled shadows.
+- Clear typography.
+- Smooth transitions.
+- Excellent content hierarchy.
+
+Avoid:
+- Cartoon-like UI.
+- Excessive neon.
+- Random decorative illustrations.
+- Generic Bootstrap styling.
+- Unnecessary dashboards filled with meaningless metrics.
+
+Typography:
+- Inter for interface.
+- KaTeX for mathematical expressions.
+- Monospace for raw equation input and technical output.
+
+The application should look like a real scientific software product, not a generic student assignment.
+
+---
+
+# 4. APPLICATION LAYOUT
+
+Use a responsive application shell.
+
+Desktop:
+- Left navigation sidebar.
+- Main computational workspace.
+- Optional contextual information panel.
+- Wide interactive graph areas.
+- Collapsible sections.
+
+Mobile:
+- Collapsible navigation.
+- Stacked equation input fields.
+- Full-width result cards.
+- Responsive mathematical equations.
+- Scrollable mathematical steps.
+- Touch-friendly graph controls.
+
+Navigation:
+
+1. Overview
+2. Equation Solver
+3. Solution Visualizer
+4. Data & Curve Fitting
+5. Worked Examples
+6. Learning Guide
+7. Calculation History
+
+Include a polished welcome screen with the product identity and a prominent "Open Workspace" action.
+
+The application should remain practical and fast to use.
+
+---
+
+# 5. MODULE ONE — EQUATION SOLVER
+
+Support first-order differential equations in the form:
+
+M(x,y) dx + N(x,y) dy = 0
+
+Provide two independent mathematical input fields:
+
+M(x,y): [input]
+N(x,y): [input]
+
+Example:
+M = 2*x*y + 3
+N = x**2 + 4*y
+
+Input requirements:
+- Accept standard SymPy-compatible mathematical expressions.
+- Support powers, fractions, polynomials, trigonometric functions, exponentials, and logarithms where mathematically supported.
+- Provide controlled and safe parsing with explicitly permitted symbols and functions.
+- Never evaluate arbitrary Python code.
+- Display a live rendered mathematical preview.
+- Validate input before solving.
+- Show meaningful mathematical error messages.
+- Prevent invalid or unsupported operations.
+
+Buttons:
+- Check Exactness
+- Solve Equation
+- Clear
+- Load Example
+
+## Exactness Detection
+
+Compute:
+
+∂M/∂y
+
+and
+
+∂N/∂x
+
+Check whether:
+
+∂M/∂y = ∂N/∂x
+
+using SymPy symbolic simplification.
+
+Do not use numerical equality as the primary exactness test.
+
+Display:
+
+- Original equation.
+- Partial derivative of M with respect to y.
+- Partial derivative of N with respect to x.
+- Simplified derivative difference.
+- Exactness classification.
+- Explanation of the result.
+
+For exact equations, continue to solve automatically.
+
+For non-exact equations, examine the supported integrating-factor cases.
+
+---
+
+# 6. MODULE TWO — EXACT EQUATION SOLVER
+
+For an exact equation:
+
+M dx + N dy = 0
+
+Find a potential function F(x,y) such that:
+
+F_x = M
+
+F_y = N
+
+Mathematical procedure:
+
+1. Integrate M with respect to x.
+2. Introduce an unknown function g(y).
+3. Differentiate the resulting expression with respect to y.
+4. Compare with N.
+5. Determine g'(y).
+6. Integrate g'(y) to obtain g(y).
+7. Construct F(x,y).
+8. Present the final implicit solution F(x,y) = C.
+9. Verify by differentiating F.
+
+Show all intermediate expressions using readable mathematical notation.
+
+Use actual SymPy expressions and transformations.
+
+Never fabricate intermediate integration steps.
+
+Handle integration failures or unsupported special-function results gracefully.
+
+---
+
+# 7. MODULE THREE — NON-EXACT EQUATION SOLVER
+
+For a non-exact equation, support simple integrating-factor cases.
+
+## Case A — Integrating Factor Depending on x
+
+Calculate:
+
+(M_y - N_x) / N
+
+If the expression simplifies to a function of x alone, calculate:
+
+μ(x) = exp(∫[(M_y - N_x)/N] dx)
+
+Multiply M and N by μ(x).
+
+Verify the transformed equation is exact.
+
+Proceed with the exact equation solver.
+
+## Case B — Integrating Factor Depending on y
+
+Calculate:
+
+(N_x - M_y) / M
+
+If the expression simplifies to a function of y alone, calculate:
+
+μ(y) = exp(∫[(N_x - M_y)/M] dy)
+
+Multiply M and N by μ(y).
+
+Verify exactness again.
+
+Proceed with the exact equation solver.
+
+For both cases:
+- Check denominators and domain restrictions.
+- Check genuine variable dependence through symbolic simplification and free-symbol analysis.
+- Handle zero or undefined expressions carefully.
+- Verify the resulting integrating factor rather than assuming correctness.
+- Explain every mathematical step.
+
+If neither supported method applies, show:
+
+"This equation is not exact, and a supported simple integrating factor could not be identified."
+
+Never claim that the equation has no solution.
+
+Do not invent an unsupported integrating factor.
+
+Clearly state which methods are supported.
+
+---
+
+# 8. MODULE FOUR — INTERACTIVE SOLUTION VISUALIZER
+
+Build an interactive graphing workspace powered by Plotly.
+
+Features:
+
+- Plot solution curves.
+- Zoom and pan.
+- Display x and y axes.
+- Grid toggle.
+- Show coordinate values on hover.
+- Show multiple curves for different valid values of C.
+- Highlight a curve corresponding to an initial condition.
+- Show a legend.
+- Reset view.
+- Export plot as PNG.
+
+Initial condition inputs:
+
+x₀
+y₀
+
+If a potential function F(x,y) is known, calculate:
+
+C = F(x₀,y₀)
+
+Then visualize the corresponding implicit solution where possible.
+
+Important:
+
+Not every implicit equation F(x,y)=C can be expressed globally as y=f(x).
+
+Implement appropriate plotting strategies:
+
+1. Explicit symbolic solution branches when available.
+2. Implicit contour plotting for F(x,y)=C.
+3. Numerical integration of dy/dx = -M/N on valid domains.
+
+Do not treat implicit equations as if they always have one explicit branch.
+
+For numerical integration:
+- Use SciPy solve_ivp.
+- Respect singularities and denominator zeros.
+- Report solver failures.
+- Avoid plotting across discontinuities.
+- Show valid solution intervals.
+
+Where valid, include an optional slope/direction field.
+
+Differentiate analytically derived solutions from numerically approximated solutions in the interface.
+
+---
+
+# 9. MODULE FIVE — DATASET & CURVE FITTING STUDIO
+
+Create a complete mathematical data analysis module.
+
+Users must be able to:
+
+- Upload CSV datasets.
+- Select an example dataset.
+- Preview data in a table.
+- Select a case.
+- Compare observed values with model predictions.
+- Fit supported parameters.
+- Inspect residuals.
+- Export analysis results.
+
+Required CSV structure:
+
+case_id,x_value,observed_y
+
+Support multiple case IDs.
+
+Preserve uploaded source values.
+
+Provide clear validation for:
+- Missing columns.
+- Invalid numerical entries.
+- Missing observations.
+- Duplicate x-values.
+- Insufficient observations.
+- Incompatible solution domains.
+
+## Model Comparison
+
+For supported explicit or numerically evaluable ODE solution branches, calculate predicted values at the observed x-coordinates.
+
+Display:
+
+Observed y
+
+Predicted y
+
+Residual
+
+Squared residual
+
+Define:
+
+Residual = observed_y - predicted_y
+
+Calculate:
+
+MSE = mean(residual²)
+
+RMSE = sqrt(MSE)
+
+MAE = mean(abs(residual))
+
+R² = 1 - SSE/SST
+
+Handle cases where SST=0 without producing misleading metrics.
+
+## Parameter Fitting
+
+For supported equation families, fit the integration constant C or initial-value parameter using least squares when valid and identifiable.
+
+Use scipy.optimize.least_squares or scipy.optimize.curve_fit when appropriate.
+
+Distinguish between:
+- A theoretically predicted curve from a supplied initial condition.
+- A curve calibrated against observed data.
+
+Do not report a fitted parameter if no valid numerical solution or identifiable parameterization exists.
+
+## Visualizations
+
+Graph A:
+Observed data points and theoretical curve.
+
+Graph B:
+Observed data points and fitted curve.
+
+Graph C:
+Residuals vs x-values.
+
+Graph D:
+Observed vs predicted scatter plot.
+
+Provide metrics cards for:
+- RMSE
+- MAE
+- MSE
+- R²
+
+Provide an accessible explanation of what each metric indicates.
+
+Do not describe a lower fitting error as proof of the differential equation's physical validity.
+
+---
+
+# 10. BUILT-IN MATHEMATICAL EXAMPLES
+
+Create a built-in example library with verified mathematical answers.
+
+Example 1 — Exact Equation
+
+M = 2*x*y + 3
+N = x**2 + 4*y
+
+Expected:
+
+M_y = 2*x
+N_x = 2*x
+
+Exact equation.
+
+Final solution:
+
+x²y + 3x + 2y² = C
+
+Example 2 — Exact Equation
+
+M = y
+N = x
+
+Expected:
+
+M_y = 1
+N_x = 1
+
+Final solution:
+
+xy = C
+
+Example 3 — Non-Exact Equation with μ(x)
+
+M = y
+N = x**2
+
+Expected:
+
+M_y = 1
+N_x = 2*x
+
+(M_y - N_x)/N = (1 - 2*x)/x²
+
+Integrating factor:
+
+μ(x) = exp(-1/x) / x²
+
+on x > 0, or an equivalent nonzero constant multiple on another valid interval.
+
+Verify the transformed equation is exact.
+
+Example 4 — Non-Exact Equation with μ(y)
+
+M = y**2
+N = x*y
+
+Expected:
+
+M_y = 2*y
+N_x = y
+
+(N_x - M_y)/M = -1/y
+
+Integrating factor:
+
+μ(y) = 1/y
+
+on y ≠ 0, up to a nonzero constant multiple on each connected interval.
+
+Transformed equation:
+
+y dx + x dy = 0
+
+Final solution:
+
+xy = C
+
+State that multiplication by an integrating factor requiring y ≠ 0 may exclude solution branches and that domain restrictions must be preserved.
+
+Example 5 — Unsupported Simple Integrating Factor
+
+Provide a verified non-exact example for which neither supported one-variable integrating-factor test succeeds.
+
+Explain the limitation rather than returning an incorrect solution.
+
+Every built-in example must be unit tested.
+
+---
+
+# 11. DEMO DATASETS
+
+Create real CSV files bundled with the project.
+
+Dataset A — Linear Solution with Noise
+
+Equation:
+
+dy/dx = -y
+
+General solution:
+
+y = C exp(-x)
+
+Use known C and deterministic, small synthetic measurement noise to generate observations.
+
+Dataset B — Polynomial Solution
+
+Equation:
+
+dy/dx = 2x
+
+General solution:
+
+y = x² + C
+
+Generate observations over a suitable range.
+
+Dataset C — Exponential Growth
+
+Equation:
+
+dy/dx = 2y
+
+General solution:
+
+y = C exp(2x)
+
+Generate realistic example observations.
+
+Store data using:
+
+case_id,x_value,observed_y
+
+Include a README explaining:
+
+- Underlying equation.
+- True model parameter.
+- How observations were generated.
+- Noise assumptions.
+- Expected fitted result.
+
+Label all generated observations as synthetic sample data, not real experimental research data.
+
+Ensure these datasets work end-to-end with the solver and residual analysis module.
+
+---
+
+# 12. LEARNING GUIDE
+
+Provide short, understandable educational content.
+
+Topics:
+- What is a first-order differential equation?
+- What makes an equation exact?
+- Understanding partial derivatives.
+- Potential functions.
+- Why integrating factors work.
+- Exact vs non-exact equations.
+- Implicit vs explicit solutions.
+- Curve fitting.
+- Residuals and fitting error.
+
+Each topic should contain:
+- Simple explanation.
+- Mathematical formula.
+- Worked example.
+- Visual support where appropriate.
+- Link to open the example in the solver.
+
+Avoid extremely long textbook-style explanations.
+
+---
+
+# 13. API ARCHITECTURE
+
+Create Python FastAPI endpoints.
+
+POST /api/equations/check
+
+Inputs:
+M expression
+N expression
+
+Outputs:
+Parsed expressions
+Partial derivatives
+Simplified exactness condition
+Exactness classification
+Applicable supported method
+
+POST /api/equations/solve
+
+Outputs:
+Method used
+Structured mathematical steps
+Potential function if found
+Implicit final solution
+Verification status
+Domain restrictions
+Warnings
+
+POST /api/equations/plot
+
+Inputs:
+Equation
+Initial condition
+Plot boundaries
+Numerical resolution
+
+Outputs:
+Valid plot coordinates
+Branch information
+Calculation warnings
+
+POST /api/data/analyze
+
+Inputs:
+Case ID
+Observation data
+Equation or model reference
+Fitting options
+
+Outputs:
+Predictions
+Residuals
+Metrics
+Parameter estimates where valid
+Graph-ready numerical data
+
+GET /api/examples
+
+Outputs:
+Verified built-in examples.
+
+Use structured Pydantic request and response models.
+
+Use centralized error handling.
+
+Prevent excessive symbolic processing with safe expression limits and reasonable calculation safeguards.
+
+---
+
+# 14. PROJECT STRUCTURE
+
+Organize the project professionally.
+
+equationpath/
+  frontend/
+    src/
+      components/
+      pages/
+      layouts/
+      hooks/
+      services/
+      types/
+      utils/
+  backend/
+    app/
+      main.py
+      api/
+      core/
+      math/
+        parser.py
+        exactness.py
+        integrating_factors.py
+        exact_solver.py
+        verification.py
+        numerical_solver.py
+        curve_fitting.py
+      models/
+      services/
+    tests/
+    requirements.txt
+  datasets/
+  docs/
+  README.md
+
+Keep computation, API handling, UI components, and data processing separated.
+
+Do not place all mathematical functionality in one giant Python file.
+
+---
+
+# 15. FUNCTIONALITY AND QUALITY REQUIREMENTS
+
+Every visible interactive control must perform its intended action.
+
+No placeholder buttons.
+
+No fake calculations.
+
+No hardcoded answers for user input.
+
+No simulated API results.
+
+No randomly generated fitting metrics.
+
+No static graphs pretending to be computed solutions.
+
+All graph data must originate from actual mathematical computations or clearly identified sample datasets.
+
+Add:
+
+- Loading indicators.
+- Useful error handling.
+- Responsive layouts.
+- Input validation.
+- Toast notifications.
+- Empty states.
+- Export options.
+- Calculation history.
+- Copy LaTeX functionality.
+- Reset calculation functionality.
+
+The core application must function without an internet connection after dependency installation.
+
+---
+
+# 16. MATHEMATICAL VERIFICATION AND TESTS
+
+Add automated backend tests.
+
+Test:
+- Correct symbolic differentiation.
+- Exactness classification.
+- Potential function construction.
+- Correct integrating-factor selection.
+- Exactness after transformation.
+- Verification of F_x=M and F_y=N.
+- Handling of domain restrictions.
+- Unsupported equation behavior.
+- Numerical ODE solutions against known analytical cases.
+- Accuracy of least-squares estimates.
+- Correct RMSE, MAE, MSE, and R².
+- Invalid CSV handling.
+- Incorrect expression handling.
+- Handling singular points.
+
+Include integration tests for critical API endpoints.
+
+For symbolic results, verify identities mathematically rather than comparing only printed strings.
+
+For numerical results, use documented tolerances.
+
+Never silently replace computation errors with invented results.
+
+---
+
+# 17. USER EXPERIENCE FLOW
+
+Expected main user journey:
+
+1. Open EquationPath.
+2. Enter M(x,y) and N(x,y).
+3. View formatted equation.
+4. Click Check Exactness.
+5. Receive classification and derivative calculations.
+6. Click Solve Equation.
+7. Follow the worked solution.
+8. Enter an initial condition.
+9. Visualize solution curves.
+10. Upload a CSV or choose sample observations.
+11. Compare observed and predicted data.
+12. Fit a valid supported model parameter if desired.
+13. Inspect residual plots and error metrics.
+14. Export results.
+
+Make navigation between these stages seamless.
+
+Preserve equation and result state when navigating between modules.
+
+---
+
+# 18. DEVELOPMENT EXECUTION INSTRUCTIONS
+
+First inspect the current workspace.
+
+If the project is empty, initialize the application using the specified stack.
+
+Implement the actual backend mathematics rather than beginning with mock mathematical API responses.
+
+Build the frontend and connect it to the functioning API.
+
+Then implement numerical plotting and dataset analysis.
+
+Include representative verified examples and automated tests.
+
+Install dependencies when permitted.
+
+Run the application and check for compilation and runtime errors.
+
+Fix issues encountered during execution.
+
+Create a clear README containing:
+- Project overview.
+- Mathematical scope.
+- Tech stack.
+- Folder architecture.
+- Installation.
+- Backend startup command.
+- Frontend startup command.
+- Testing instructions.
+- Example usage.
+- Known mathematical limitations.
+
+Deliver an application that can be demonstrated locally.
+
+If a requested mathematical case is not supported, explicitly report it instead of approximating an unsupported symbolic answer.
+
+Do not stop at planning, scaffolding, or UI generation.
+
+**The final deliverable must be a connected, working, mathematically verifiable application with polished UI and functional visualizations.**

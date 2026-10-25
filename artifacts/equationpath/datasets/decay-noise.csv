@@ -1,0 +1,7 @@
+case_id,x_value,observed_y
+decay,0.0,2.018
+decay,0.4,1.348
+decay,0.8,0.898
+decay,1.2,0.615
+decay,1.6,0.394
+decay,2.0,0.284

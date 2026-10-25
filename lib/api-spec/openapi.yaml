@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: equations
+    description: Symbolic differential-equation operations
+  - name: data
+    description: Dataset analysis operations
+  - name: examples
+    description: Verified worked examples
 paths:
   /healthz:
     get:
@@ -24,6 +30,114 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /equations/check:
+    post:
+      operationId: checkEquation
+      tags: [equations]
+      summary: Check exactness and supported integrating factors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquationInput"
+      responses:
+        "200":
+          description: Exactness analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExactnessResult"
+        "400":
+          description: Invalid equation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /equations/solve:
+    post:
+      operationId: solveEquation
+      tags: [equations]
+      summary: Solve an exact equation or apply a supported integrating factor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquationInput"
+      responses:
+        "200":
+          description: Structured solution and verification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolutionResult"
+        "400":
+          description: Invalid equation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /equations/plot:
+    post:
+      operationId: plotEquation
+      tags: [equations]
+      summary: Generate numerically integrated solution curves
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlotInput"
+      responses:
+        "200":
+          description: Plot-ready curve data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlotResult"
+        "400":
+          description: Invalid or singular equation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /data/analyze:
+    post:
+      operationId: analyzeDataset
+      tags: [data]
+      summary: Compare observations with an ODE solution family and fit its constant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeDatasetInput"
+      responses:
+        "200":
+          description: Predictions, residuals, fit parameters, and metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "400":
+          description: Invalid observations or unsupported model
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /examples:
+    get:
+      operationId: getExamples
+      tags: [examples]
+      summary: List verified built-in equations and sample datasets
+      responses:
+        "200":
+          description: Examples and dataset metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamplesResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +147,133 @@ components:
           type: string
       required:
         - status
+    EquationInput:
+      type: object
+      properties:
+        m:
+          type: string
+          minLength: 1
+          maxLength: 400
+        n:
+          type: string
+          minLength: 1
+          maxLength: 400
+      required: [m, n]
+    ExactnessResult:
+      type: object
+      properties:
+        m: { type: string }
+        n: { type: string }
+        m_y: { type: string }
+        n_x: { type: string }
+        difference: { type: string }
+        is_exact: { type: boolean }
+        method: { type: string }
+        factor: { type: ["string", "null"] }
+        explanation: { type: string }
+      required: [m, n, m_y, n_x, difference, is_exact, method, factor, explanation]
+    SolutionResult:
+      type: object
+      properties:
+        status: { type: string }
+        method: { type: string }
+        potential: { type: ["string", "null"] }
+        implicit_solution: { type: ["string", "null"] }
+        steps:
+          type: array
+          items: { type: string }
+        verification:
+          type: object
+          additionalProperties: true
+        domain_restrictions:
+          type: array
+          items: { type: string }
+        warnings:
+          type: array
+          items: { type: string }
+      required: [status, method, potential, implicit_solution, steps, verification, domain_restrictions, warnings]
+    PlotInput:
+      type: object
+      properties:
+        m: { type: string, minLength: 1, maxLength: 400 }
+        n: { type: string, minLength: 1, maxLength: 400 }
+        x0: { type: number }
+        y0: { type: number }
+        x_min: { type: number, default: -5 }
+        x_max: { type: number, default: 5 }
+        points: { type: integer, minimum: 40, maximum: 600, default: 240 }
+      required: [m, n, x0, y0]
+    PlotResult:
+      type: object
+      properties:
+        x: { type: array, items: { type: number } }
+        y: { type: array, items: { type: ["number", "null"] } }
+        x0: { type: number }
+        y0: { type: number }
+        warnings:
+          type: array
+          items: { type: string }
+        method: { type: string }
+      required: [x, y, x0, y0, warnings, method]
+    Observation:
+      type: object
+      properties:
+        x_value: { type: number }
+        observed_y: { type: number }
+      required: [x_value, observed_y]
+    AnalyzeDatasetInput:
+      type: object
+      properties:
+        model: { type: string, enum: [decay, growth, quadratic] }
+        observations:
+          type: array
+          minItems: 2
+          items: { $ref: "#/components/schemas/Observation" }
+        fit_parameter: { type: boolean, default: true }
+        known_parameter: { type: ["number", "null"] }
+      required: [model, observations]
+    AnalysisResult:
+      type: object
+      properties:
+        model: { type: string }
+        parameter_name: { type: ["string", "null"] }
+        parameter_value: { type: ["number", "null"] }
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        metrics:
+          type: object
+          additionalProperties: { type: ["number", "null"] }
+        note: { type: string }
+      required: [model, parameter_name, parameter_value, rows, metrics, note]
+    Example:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        m: { type: string }
+        n: { type: string }
+        kind: { type: string }
+        expected_solution: { type: string }
+        description: { type: string }
+      required: [id, title, m, n, kind, expected_solution, description]
+    ExamplesResponse:
+      type: object
+      properties:
+        examples:
+          type: array
+          items: { $ref: "#/components/schemas/Example" }
+        datasets:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required: [examples, datasets]
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+      required: [error]
 

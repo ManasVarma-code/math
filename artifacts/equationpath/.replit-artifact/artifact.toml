@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "EquationPath"
+description = "An interactive differential-equation studio for checking exactness, solving supported first-order ODEs, visualizing solution curves, and analyzing fitted data."
+version = "1.0.0"
+id = "artifacts/equationpath"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19529
+
+[services.development]
+run = "pnpm --filter @workspace/equationpath run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/equationpath", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/equationpath/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19529"
+BASE_PATH = "/"
