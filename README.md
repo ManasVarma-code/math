@@ -130,3 +130,11 @@ See [development summary](DEVELOPMENT_SUMMARY.md) for the changes and test resul
 The exact CSV schema is **`case_id,x_value,observed_y`**. Download CSV template creates this header and two example rows. Uploaded data has no known reference C: the app displays the chosen reference explicitly and offers **Use fitted C as reference** after an analytical fit.
 
 The optional Express/FastAPI adapters are retained for development compatibility only and are unused by the shipped browser-only application.
+
+## Vercel deployment
+
+Deploy the `main` branch as a single Vite project. The recommended Root Directory is the repository root (`./`); the root `vercel.json` builds only EquationPath and serves `artifacts/equationpath/dist/public`. Do not import the Express or FastAPI services.
+
+If the project was imported with Root Directory `artifacts/equationpath`, enable **Include source files outside of the Root Directory in the Build Step** for the workspace libraries and packaging script. That directory's `vercel.json` serves `dist/public`. Install workspace dependencies with pnpm, including development dependencies required by Vite. Clear conflicting dashboard Build Command/Output Directory overrides and redeploy after changing settings.
+
+Both configurations include the SPA fallback so refreshing `/solver`, `/practice` or `/fitting` loads the app. The build packages the Python runtime and math libraries as static assets; no backend service or Python server is deployed.
